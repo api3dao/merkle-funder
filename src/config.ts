@@ -1,16 +1,16 @@
-import fs from "fs";
-import { z } from "zod";
+import fs from 'fs';
+import { z } from 'zod';
 
 export const evmAddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 
 export const namedUnits = z.union([
-  z.literal("wei"),
-  z.literal("kwei"),
-  z.literal("mwei"),
-  z.literal("gwei"),
-  z.literal("szabo"),
-  z.literal("finney"),
-  z.literal("ether"),
+  z.literal('wei'),
+  z.literal('kwei'),
+  z.literal('mwei'),
+  z.literal('gwei'),
+  z.literal('szabo'),
+  z.literal('finney'),
+  z.literal('ether'),
 ]);
 
 export const thresholdSchema = z.object({
@@ -30,7 +30,7 @@ export const valuesSchema = z.array(valueSchema).refine(
     const uniqueRecipients = [...new Set(recipients)];
     return uniqueRecipients.length === recipients.length;
   },
-  { message: "All recipients must be unique" }
+  { message: 'All recipients must be unique' }
 );
 
 export const chainConfigSchema = z.object({
@@ -38,17 +38,14 @@ export const chainConfigSchema = z.object({
   values: valuesSchema,
 });
 
-export const chainsConfigSchema = z.record(
-  z.coerce.number().int().positive(),
-  z.array(chainConfigSchema)
-);
+export const chainsConfigSchema = z.record(z.coerce.number().int().positive(), z.array(chainConfigSchema));
 
 export const configSchema = z.object({
   funderDepositories: chainsConfigSchema,
 });
 
-const loadConfig = (configPath: string = "./config/config.json") => {
-  const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+const loadConfig = (configPath = './config/config.json') => {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
   return configSchema.parse(config);
 };

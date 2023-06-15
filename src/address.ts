@@ -1,11 +1,7 @@
-import hre from "hardhat";
-import { FunderDepository__factory } from "../typechain-types";
+import hre from 'hardhat';
+import { FunderDepository__factory } from '../typechain-types';
 
-export const computeFunderDepositoryAddress = async (
-  funderAddress: string,
-  owner: string,
-  root: string
-) => {
+export const computeFunderDepositoryAddress = async (funderAddress: string, owner: string, root: string) => {
   //   console.log( "FunderDepository__factory.bytecode:", FunderDepository__factory.bytecode);
 
   //   const artifact = await hre.artifacts.readArtifact("FunderDepository");
@@ -13,14 +9,8 @@ export const computeFunderDepositoryAddress = async (
   //   console.log("artifact.deployedBytecode:", artifact.deployedBytecode);
 
   const initcode = hre.ethers.utils.solidityPack(
-    ["bytes", "bytes"],
-    [
-      FunderDepository__factory.bytecode,
-      hre.ethers.utils.defaultAbiCoder.encode(
-        ["address", "bytes32"],
-        [owner, root]
-      ),
-    ]
+    ['bytes', 'bytes'],
+    [FunderDepository__factory.bytecode, hre.ethers.utils.defaultAbiCoder.encode(['address', 'bytes32'], [owner, root])]
   );
 
   return hre.ethers.utils.getCreate2Address(
