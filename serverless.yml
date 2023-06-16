@@ -1,0 +1,21 @@
+service: funder-task
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+package:
+  patterns:
+    - ./config/config.json
+    - ./config/credentials.json
+
+functions:
+  fundHandler:
+    handler: src/handler.run
+    events:
+      - schedule: rate(1 minute)

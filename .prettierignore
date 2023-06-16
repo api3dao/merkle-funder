@@ -5,6 +5,7 @@ coverage.json
 typechain
 typechain-types
 *.log
+.build
 
 # Hardhat files
 cache
@@ -13,3 +14,7 @@ deployments
 
 # Config files
 config.json
+credentials.json*
+
+# Serverless
+.serverless
