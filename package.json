@@ -4,19 +4,22 @@
   "license": "MIT",
   "scripts": {
     "build": "hardhat compile",
-    "hh:node": "hardhat node",
-    "hh:deploy": "hardhat deploy",
     "deploy:funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
     "deploy:funder-depositories": "hardhat run ./scripts/deploy-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat --network localhost deploy --watch",
     "fund": "hardhat run ./scripts/fund.ts --network $NETWORK",
-    "test": "hardhat test",
+    "hh:node": "hardhat node",
+    "hh:deploy": "hardhat deploy",
     "lint": "yarn run prettier:check && yarn run lint:eslint && yarn run lint:solhint",
     "lint:solhint": "solhint ./contracts/**/*.sol",
     "lint:eslint": "eslint . --ext .js,.ts",
     "prettier:check": "prettier --check \"./**/*.{js,ts,md,json,sol}\"",
     "prettier": "prettier --write \"./**/*.{js,ts,md,json,sol}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "sls:config": "sls config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY",
+    "sls:deploy": "sls deploy --region us-east-1",
+    "sls:remove": "sls remove --region us-east-1",
+    "test": "hardhat test"
   },
   "devDependencies": {
     "@api3/airnode-protocol-v1": "^2.7.1",
