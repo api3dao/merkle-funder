@@ -41,7 +41,7 @@ export const chainConfigSchema = z.object({
 export const chainsConfigSchema = z.record(z.coerce.number().int().positive(), z.array(chainConfigSchema));
 
 export const configSchema = z.object({
-  funderDepositories: chainsConfigSchema,
+  merkleFunderDepositories: chainsConfigSchema,
 });
 
 const loadConfig = (configPath = './config/config.json') => {

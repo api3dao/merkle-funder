@@ -2,30 +2,36 @@
 pragma solidity 0.8.17;
 
 import "@api3/airnode-protocol-v1/contracts/utils/SelfMulticall.sol";
-import "./interfaces/IFunder.sol";
+import "./interfaces/IMerkleFunder.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
-import "./FunderDepository.sol";
+import "./MerkleFunderDepository.sol";
 
-contract Funder is SelfMulticall, IFunder {
+contract MerkleFunder is SelfMulticall, IMerkleFunder {
     mapping(address => mapping(bytes32 => address payable))
         public
-        override ownerToRootToFunderDepositoryAddress;
+        override ownerToRootToMerkleFunderDepositoryAddress;
 
-    function deployFunderDepository(
+    function deployMerkleFunderDepository(
         address owner,
         bytes32 root
-    ) external override returns (address payable funderDepository) {
+    ) external override returns (address payable merkleFunderDepository) {
         // Owner allowed to be zero
         require(root != bytes32(0), "Root zero");
-        funderDepository = payable(
-            new FunderDepository{salt: bytes32(0)}(owner, root)
+        merkleFunderDepository = payable(
+            new MerkleFunderDepository{salt: bytes32(0)}(owner, root)
         );
-        ownerToRootToFunderDepositoryAddress[owner][root] = funderDepository;
-        // We could have not stored this and used computeFunderDepositoryAddress() on the
-        // fly whenever we needed it, but doing so requires handling the FunderDepository
+        ownerToRootToMerkleFunderDepositoryAddress[owner][
+            root
+        ] = merkleFunderDepository;
+        // We could have not stored this and used computeMerkleFunderDepositoryAddress() on the
+        // fly whenever we needed it, but doing so requires handling the MerkleFunderDepository
         // bytecode, which ends up being more expensive than reading a bytes32 from storage
-        emit DeployedFunderDepository(funderDepository, owner, root);
+        emit DeployedMerkleFunderDepository(
+            merkleFunderDepository,
+            owner,
+            root
+        );
     }
 
     // It's a bit heavy on the calldata but I don't see a way around it
@@ -53,22 +59,28 @@ contract Funder is SelfMulticall, IFunder {
         // https://en.wikipedia.org/wiki/Hysteresis#In_engineering
         uint256 recipientBalance = recipient.balance;
         require(recipientBalance <= lowThreshold, "Balance not low enough");
-        address payable funderDepository = ownerToRootToFunderDepositoryAddress[
-            owner
-        ][root];
-        require(funderDepository != address(0), "No such FunderDepository");
+        address payable merkleFunderDepository = ownerToRootToMerkleFunderDepositoryAddress[
+                owner
+            ][root];
+        require(
+            merkleFunderDepository != address(0),
+            "No such MerkleFunderDepository"
+        );
         uint256 amountNeededToTopUp;
         unchecked {
             amountNeededToTopUp = highThreshold - recipientBalance;
         }
-        uint256 amount = amountNeededToTopUp <= funderDepository.balance
+        uint256 amount = amountNeededToTopUp <= merkleFunderDepository.balance
             ? amountNeededToTopUp
-            : funderDepository.balance;
+            : merkleFunderDepository.balance;
         require(amount != 0, "Amount zero");
-        FunderDepository(funderDepository).withdraw(recipient, amount);
+        MerkleFunderDepository(merkleFunderDepository).withdraw(
+            recipient,
+            amount
+        );
         // Even though the call above is external, it is to a trusted contract so the
         // event can be emitted after it returns
-        emit Funded(funderDepository, recipient, amount);
+        emit Funded(merkleFunderDepository, recipient, amount);
     }
 
     // Called by the owner
@@ -79,36 +91,45 @@ contract Funder is SelfMulticall, IFunder {
     ) public override {
         require(recipient != address(0), "Recipient address zero");
         require(amount != 0, "Amount zero");
-        address payable funderDepository = ownerToRootToFunderDepositoryAddress[
-            msg.sender
-        ][root];
-        require(funderDepository != address(0), "No such FunderDepository");
-        require(funderDepository.balance >= amount, "Insufficient balance");
-        FunderDepository(funderDepository).withdraw(recipient, amount);
-        emit Withdrew(funderDepository, recipient, amount);
+        address payable merkleFunderDepository = ownerToRootToMerkleFunderDepositoryAddress[
+                msg.sender
+            ][root];
+        require(
+            merkleFunderDepository != address(0),
+            "No such MerkleFunderDepository"
+        );
+        require(
+            merkleFunderDepository.balance >= amount,
+            "Insufficient balance"
+        );
+        MerkleFunderDepository(merkleFunderDepository).withdraw(
+            recipient,
+            amount
+        );
+        emit Withdrew(merkleFunderDepository, recipient, amount);
     }
 
-    // fund() calls will keep withdrawing from FunderDepository so it may be difficult to
+    // fund() calls will keep withdrawing from MerkleFunderDepository so it may be difficult to
     // withdraw the entire balance. I provided a convenience function for that.
     function withdrawAll(bytes32 root, address recipient) external override {
         withdraw(
             root,
             recipient,
-            ownerToRootToFunderDepositoryAddress[msg.sender][root].balance
+            ownerToRootToMerkleFunderDepositoryAddress[msg.sender][root].balance
         );
     }
 
     // This needs to be adapted for zksync but at least we've done that before for ProxyFactory
-    function computeFunderDepositoryAddress(
+    function computeMerkleFunderDepositoryAddress(
         address owner,
         bytes32 root
-    ) external view override returns (address funderDepository) {
+    ) external view override returns (address merkleFunderDepository) {
         require(root != bytes32(0), "Root zero");
-        funderDepository = Create2.computeAddress(
+        merkleFunderDepository = Create2.computeAddress(
             bytes32(0),
             keccak256(
                 abi.encodePacked(
-                    type(FunderDepository).creationCode,
+                    type(MerkleFunderDepository).creationCode,
                     abi.encode(owner, root)
                 )
             )

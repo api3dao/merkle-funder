@@ -1,4 +1,4 @@
-service: funder-task
+service: merkle-funder-task
 frameworkVersion: '3'
 
 provider:

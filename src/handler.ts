@@ -1,8 +1,8 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import loadConfig from './config';
-import { fundChainRecipients } from './funder';
+import { fundChainRecipients } from './merkleFunder';
 import path from 'path';
-import { getFunderContract } from './credentials';
+import { getMerkleFunderContract } from './credentials';
 
 export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Context): Promise<void> => {
   const startedAt = new Date();
@@ -10,9 +10,9 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
 
   try {
     await Promise.all(
-      Object.entries(config.funderDepositories).map(async ([chainId, funderDepositories]) => {
-        const funderContract = getFunderContract(path.join(__dirname, '../../'), chainId);
-        await fundChainRecipients(funderDepositories, funderContract);
+      Object.entries(config.merkleFunderDepositories).map(async ([chainId, merkleFunderDepositories]) => {
+        const merkleFunderContract = getMerkleFunderContract(path.join(__dirname, '../../'), chainId);
+        await fundChainRecipients(merkleFunderDepositories, merkleFunderContract);
       })
     );
   } catch (err) {

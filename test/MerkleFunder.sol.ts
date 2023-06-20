@@ -1,11 +1,11 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { expect } from 'chai';
 import * as hre from 'hardhat';
-import { computeFunderDepositoryAddress } from '../src';
+import { computeMerkleFunderDepositoryAddress } from '../src';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 
-describe('Funder', function () {
-  const deployFunder = async () => {
+describe('MerkleFunder', function () {
+  const deployMerkleFunder = async () => {
     const accounts = await hre.ethers.getSigners();
     const roles = {
       deployer: accounts[0],
@@ -16,8 +16,8 @@ describe('Funder', function () {
       randomPerson: accounts[9],
     };
 
-    const Funder = await hre.ethers.getContractFactory('Funder', roles.deployer);
-    const funder = await Funder.deploy();
+    const MerkleFunder = await hre.ethers.getContractFactory('MerkleFunder', roles.deployer);
+    const merkleFunder = await MerkleFunder.deploy();
 
     const treeValues = await Promise.all(
       [roles.recipient1.address, roles.recipient2.address, roles.recipient3.address].map(async (recipientAddress) => {
@@ -35,69 +35,79 @@ describe('Funder', function () {
 
     return {
       roles,
-      funder,
+      merkleFunder,
       tree,
     };
   };
 
-  const deployFunderAndFunderDepository = async () => {
-    const { roles, funder, tree } = await deployFunder();
-    const funderDepositoryAddress = await computeFunderDepositoryAddress(
-      funder.address,
+  const deployMerkleFunderAndMerkleFunderDepository = async () => {
+    const { roles, merkleFunder, tree } = await deployMerkleFunder();
+    const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
+      merkleFunder.address,
       roles.owner.address,
       tree.root
     );
-    await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
-    const funderDepository = await hre.ethers.getContractAt('FunderDepository', funderDepositoryAddress);
+    await merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root);
+    const merkleFunderDepository = await hre.ethers.getContractAt(
+      'MerkleFunderDepository',
+      merkleFunderDepositoryAddress
+    );
     await roles.randomPerson.sendTransaction({
-      to: funderDepository.address,
+      to: merkleFunderDepository.address,
       value: hre.ethers.utils.parseEther('100'),
     });
     return {
       roles,
-      funder,
+      merkleFunder,
       tree,
-      funderDepository,
+      merkleFunderDepository,
     };
   };
 
-  describe('deployFunderDepository', function () {
+  describe('deployMerkleFunderDepository', function () {
     context('Root is not zero', function () {
-      context('FunderDepository has not been deployed before', function () {
-        it('deploys FunderDepository', async function () {
-          const { roles, funder, tree } = await loadFixture(deployFunder);
-          const funderDepositoryAddress = await computeFunderDepositoryAddress(
-            funder.address,
+      context('MerkleFunderDepository has not been deployed before', function () {
+        it('deploys MerkleFunderDepository', async function () {
+          const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunder);
+          const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
+            merkleFunder.address,
             roles.owner.address,
             tree.root
           );
-          await expect(funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root))
-            .to.emit(funder, 'DeployedFunderDepository')
-            .withArgs(funderDepositoryAddress, roles.owner.address, tree.root);
-          expect(await funder.ownerToRootToFunderDepositoryAddress(roles.owner.address, tree.root)).to.equal(
-            funderDepositoryAddress
+          await expect(
+            merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root)
+          )
+            .to.emit(merkleFunder, 'DeployedMerkleFunderDepository')
+            .withArgs(merkleFunderDepositoryAddress, roles.owner.address, tree.root);
+          expect(
+            await merkleFunder.ownerToRootToMerkleFunderDepositoryAddress(roles.owner.address, tree.root)
+          ).to.equal(merkleFunderDepositoryAddress);
+          const merkleFunderDepository = await hre.ethers.getContractAt(
+            'MerkleFunderDepository',
+            merkleFunderDepositoryAddress
           );
-          const funderDepository = await hre.ethers.getContractAt('FunderDepository', funderDepositoryAddress);
-          expect(await funderDepository.funder()).to.equal(funder.address);
-          expect(await funderDepository.owner()).to.equal(roles.owner.address);
-          expect(await funderDepository.root()).to.equal(tree.root);
+          expect(await merkleFunderDepository.merkleFunder()).to.equal(merkleFunder.address);
+          expect(await merkleFunderDepository.owner()).to.equal(roles.owner.address);
+          expect(await merkleFunderDepository.root()).to.equal(tree.root);
         });
       });
-      context('FunderDepository has been deployed before', function () {
+      context('MerkleFunderDepository has been deployed before', function () {
         it('reverts', async function () {
-          const { roles, funder, tree } = await loadFixture(deployFunder);
-          await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
+          const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunder);
+          await merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root);
           await expect(
-            funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root)
+            merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root)
           ).to.be.revertedWithoutReason;
         });
       });
     });
     context('Root is zero', function () {
       it('reverts', async function () {
-        const { roles, funder } = await loadFixture(deployFunder);
+        const { roles, merkleFunder } = await loadFixture(deployMerkleFunder);
         await expect(
-          funder.connect(roles.owner).deployFunderDepository(roles.owner.address, hre.ethers.constants.HashZero)
+          merkleFunder
+            .connect(roles.owner)
+            .deployMerkleFunderDepository(roles.owner.address, hre.ethers.constants.HashZero)
         ).to.be.revertedWith('Root zero');
       });
     });
@@ -110,11 +120,11 @@ describe('Funder', function () {
           context('Proof is valid', function () {
             context('Balance is low enough', function () {
               context('Amount is not zero', function () {
-                context('Respective FunderDepository is deployed', function () {
+                context('Respective MerkleFunderDepository is deployed', function () {
                   context('Transfer is successful', function () {
                     it('funds', async function () {
-                      const { roles, funder, tree, funderDepository } = await loadFixture(
-                        deployFunderAndFunderDepository
+                      const { roles, merkleFunder, tree, merkleFunderDepository } = await loadFixture(
+                        deployMerkleFunderAndMerkleFunderDepository
                       );
                       await Promise.all(
                         Array.from(tree.entries()).map(async ([treeValueIndex, treeValue]) => {
@@ -122,7 +132,7 @@ describe('Funder', function () {
                           const amountNeededToTopUp = hre.ethers.BigNumber.from(treeValue[2]).sub(recipientBalance);
                           // Note that we use `tree.getProof(treeValueIndex)` and not `tree.getProof(treeValue.treeIndex)`
                           await expect(
-                            funder
+                            merkleFunder
                               .connect(roles.randomPerson)
                               .fund(
                                 roles.owner.address,
@@ -133,8 +143,8 @@ describe('Funder', function () {
                                 treeValue[2]
                               )
                           )
-                            .to.emit(funder, 'Funded')
-                            .withArgs(funderDepository.address, treeValue[0].toString(), amountNeededToTopUp);
+                            .to.emit(merkleFunder, 'Funded')
+                            .withArgs(merkleFunderDepository.address, treeValue[0].toString(), amountNeededToTopUp);
                           expect(await hre.ethers.provider.getBalance(treeValue[0].toString())).to.equal(
                             recipientBalance.add(amountNeededToTopUp)
                           );
@@ -144,22 +154,27 @@ describe('Funder', function () {
                   });
                   context('Transfer is not successful', function () {
                     it('reverts', async function () {
-                      const { roles, funder } = await loadFixture(deployFunder);
-                      const tree = StandardMerkleTree.of([[funder.address, 1, 2]], ['address', 'uint256', 'uint256']);
+                      const { roles, merkleFunder } = await loadFixture(deployMerkleFunder);
+                      const tree = StandardMerkleTree.of(
+                        [[merkleFunder.address, 1, 2]],
+                        ['address', 'uint256', 'uint256']
+                      );
                       const treeValueIndex = 0;
                       const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-                      await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
-                      const funderDepositoryAddress = await computeFunderDepositoryAddress(
-                        funder.address,
+                      await merkleFunder
+                        .connect(roles.randomPerson)
+                        .deployMerkleFunderDepository(roles.owner.address, tree.root);
+                      const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
+                        merkleFunder.address,
                         roles.owner.address,
                         tree.root
                       );
                       await roles.randomPerson.sendTransaction({
-                        to: funderDepositoryAddress,
+                        to: merkleFunderDepositoryAddress,
                         value: hre.ethers.utils.parseEther('100'),
                       });
                       await expect(
-                        funder
+                        merkleFunder
                           .connect(roles.randomPerson)
                           .fund(
                             roles.owner.address,
@@ -173,22 +188,22 @@ describe('Funder', function () {
                     });
                   });
                 });
-                context('Respective FunderDepository is not deployed', function () {
+                context('Respective MerkleFunderDepository is not deployed', function () {
                   it('reverts', async function () {
-                    const { roles, funder, tree } = await loadFixture(deployFunder);
+                    const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunder);
                     const treeValueIndex = 0;
                     const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-                    const funderDepositoryAddress = await computeFunderDepositoryAddress(
-                      funder.address,
+                    const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
+                      merkleFunder.address,
                       roles.owner.address,
                       tree.root
                     );
                     await roles.randomPerson.sendTransaction({
-                      to: funderDepositoryAddress,
+                      to: merkleFunderDepositoryAddress,
                       value: hre.ethers.utils.parseEther('100'),
                     });
                     await expect(
-                      funder
+                      merkleFunder
                         .connect(roles.randomPerson)
                         .fund(
                           roles.owner.address,
@@ -198,18 +213,20 @@ describe('Funder', function () {
                           treeValue[1],
                           treeValue[2]
                         )
-                    ).to.be.revertedWith('No such FunderDepository');
+                    ).to.be.revertedWith('No such MerkleFunderDepository');
                   });
                 });
               });
               context('Amount is zero', function () {
                 it('reverts', async function () {
-                  const { roles, funder, tree } = await loadFixture(deployFunder);
+                  const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunder);
                   const treeValueIndex = 0;
                   const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-                  await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
+                  await merkleFunder
+                    .connect(roles.randomPerson)
+                    .deployMerkleFunderDepository(roles.owner.address, tree.root);
                   await expect(
-                    funder
+                    merkleFunder
                       .connect(roles.randomPerson)
                       .fund(
                         roles.owner.address,
@@ -225,7 +242,7 @@ describe('Funder', function () {
             });
             context('Balance is not low enough', function () {
               it('reverts', async function () {
-                const { roles, funder, tree } = await loadFixture(deployFunderAndFunderDepository);
+                const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
                 const treeValueIndex = 0;
                 const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
                 const recipientBalance = await hre.ethers.provider.getBalance(treeValue[0].toString());
@@ -237,7 +254,7 @@ describe('Funder', function () {
                   value: amountNeededToExceedLowThreshold,
                 });
                 await expect(
-                  funder
+                  merkleFunder
                     .connect(roles.randomPerson)
                     .fund(
                       roles.owner.address,
@@ -253,11 +270,11 @@ describe('Funder', function () {
           });
           context('Proof is not valid', function () {
             it('reverts', async function () {
-              const { roles, funder, tree } = await loadFixture(deployFunderAndFunderDepository);
+              const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
               const treeValueIndex = 0;
               const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
               await expect(
-                funder
+                merkleFunder
                   .connect(roles.randomPerson)
                   .fund(
                     roles.owner.address,
@@ -273,13 +290,13 @@ describe('Funder', function () {
         });
         context('High threshold is zero', function () {
           it('reverts', async function () {
-            const { roles, funder } = await loadFixture(deployFunder);
+            const { roles, merkleFunder } = await loadFixture(deployMerkleFunder);
             const tree = StandardMerkleTree.of([[roles.recipient1.address, 0, 0]], ['address', 'uint256', 'uint256']);
             const treeValueIndex = 0;
             const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-            await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
+            await merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root);
             await expect(
-              funder
+              merkleFunder
                 .connect(roles.randomPerson)
                 .fund(
                   roles.owner.address,
@@ -295,13 +312,13 @@ describe('Funder', function () {
       });
       context('Low threshold is higher than high', function () {
         it('reverts', async function () {
-          const { roles, funder } = await loadFixture(deployFunder);
+          const { roles, merkleFunder } = await loadFixture(deployMerkleFunder);
           const tree = StandardMerkleTree.of([[roles.recipient1.address, 2, 1]], ['address', 'uint256', 'uint256']);
           const treeValueIndex = 0;
           const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-          await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
+          await merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root);
           await expect(
-            funder
+            merkleFunder
               .connect(roles.randomPerson)
               .fund(
                 roles.owner.address,
@@ -317,16 +334,16 @@ describe('Funder', function () {
     });
     context('Recipient address is zero', function () {
       it('reverts', async function () {
-        const { roles, funder } = await loadFixture(deployFunder);
+        const { roles, merkleFunder } = await loadFixture(deployMerkleFunder);
         const tree = StandardMerkleTree.of(
           [[hre.ethers.constants.AddressZero, 1, 2]],
           ['address', 'uint256', 'uint256']
         );
         const treeValueIndex = 0;
         const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-        await funder.connect(roles.randomPerson).deployFunderDepository(roles.owner.address, tree.root);
+        await merkleFunder.connect(roles.randomPerson).deployMerkleFunderDepository(roles.owner.address, tree.root);
         await expect(
-          funder
+          merkleFunder
             .connect(roles.randomPerson)
             .fund(
               roles.owner.address,
@@ -344,16 +361,18 @@ describe('Funder', function () {
   describe('withdraw', function () {
     context('Recipient address is not zero', function () {
       context('Amount is not zero', function () {
-        context('FunderDepository is deployed', function () {
+        context('MerkleFunderDepository is deployed', function () {
           context('Balance is sufficient', function () {
             context('Transfer is successful', function () {
               it('withdraws', async function () {
-                const { roles, funder, tree, funderDepository } = await loadFixture(deployFunderAndFunderDepository);
+                const { roles, merkleFunder, tree, merkleFunderDepository } = await loadFixture(
+                  deployMerkleFunderAndMerkleFunderDepository
+                );
                 const amount = hre.ethers.utils.parseEther('1');
                 const recipientBalance = await hre.ethers.provider.getBalance(roles.randomPerson.address);
-                await expect(funder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount))
-                  .to.emit(funder, 'Withdrew')
-                  .withArgs(funderDepository.address, roles.randomPerson.address, amount);
+                await expect(merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount))
+                  .to.emit(merkleFunder, 'Withdrew')
+                  .withArgs(merkleFunderDepository.address, roles.randomPerson.address, amount);
                 expect(await hre.ethers.provider.getBalance(roles.randomPerson.address)).to.equal(
                   recipientBalance.add(amount)
                 );
@@ -361,49 +380,51 @@ describe('Funder', function () {
             });
             context('Transfer is not successful', function () {
               it('reverts', async function () {
-                const { roles, funder, tree } = await loadFixture(deployFunderAndFunderDepository);
+                const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
                 const amount = hre.ethers.utils.parseEther('1');
                 await expect(
-                  funder.connect(roles.owner).withdraw(tree.root, funder.address, amount)
+                  merkleFunder.connect(roles.owner).withdraw(tree.root, merkleFunder.address, amount)
                 ).to.be.revertedWith('Transfer unsuccessful');
               });
             });
           });
           context('Balance is insufficient', function () {
             it('reverts', async function () {
-              const { roles, funder, tree, funderDepository } = await loadFixture(deployFunderAndFunderDepository);
-              const amount = (await hre.ethers.provider.getBalance(funderDepository.address)).add(1);
+              const { roles, merkleFunder, tree, merkleFunderDepository } = await loadFixture(
+                deployMerkleFunderAndMerkleFunderDepository
+              );
+              const amount = (await hre.ethers.provider.getBalance(merkleFunderDepository.address)).add(1);
               await expect(
-                funder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount)
+                merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount)
               ).to.be.revertedWith('Insufficient balance');
             });
           });
         });
-        context('FunderDepository is not deployed', function () {
+        context('MerkleFunderDepository is not deployed', function () {
           it('reverts', async function () {
-            const { roles, funder, tree } = await loadFixture(deployFunder);
+            const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunder);
             const amount = hre.ethers.utils.parseEther('1');
             await expect(
-              funder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount)
-            ).to.be.revertedWith('No such FunderDepository');
+              merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount)
+            ).to.be.revertedWith('No such MerkleFunderDepository');
           });
         });
       });
       context('Amount is zero', function () {
         it('reverts', async function () {
-          const { roles, funder, tree } = await loadFixture(deployFunderAndFunderDepository);
+          const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
           await expect(
-            funder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, 0)
+            merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, 0)
           ).to.be.revertedWith('Amount zero');
         });
       });
     });
     context('Recipient address is zero', function () {
       it('reverts', async function () {
-        const { roles, funder, tree } = await loadFixture(deployFunderAndFunderDepository);
+        const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
         const amount = hre.ethers.utils.parseEther('1');
         await expect(
-          funder.connect(roles.owner).withdraw(tree.root, hre.ethers.constants.AddressZero, amount)
+          merkleFunder.connect(roles.owner).withdraw(tree.root, hre.ethers.constants.AddressZero, amount)
         ).to.be.revertedWith('Recipient address zero');
       });
     });
@@ -411,30 +432,34 @@ describe('Funder', function () {
 
   describe('withdrawAll', function () {
     it('withdraws all', async function () {
-      const { roles, funder, tree, funderDepository } = await loadFixture(deployFunderAndFunderDepository);
-      const amount = await hre.ethers.provider.getBalance(funderDepository.address);
+      const { roles, merkleFunder, tree, merkleFunderDepository } = await loadFixture(
+        deployMerkleFunderAndMerkleFunderDepository
+      );
+      const amount = await hre.ethers.provider.getBalance(merkleFunderDepository.address);
       const recipientBalance = await hre.ethers.provider.getBalance(roles.randomPerson.address);
-      await expect(funder.connect(roles.owner).withdrawAll(tree.root, roles.randomPerson.address))
-        .to.emit(funder, 'Withdrew')
-        .withArgs(funderDepository.address, roles.randomPerson.address, amount);
+      await expect(merkleFunder.connect(roles.owner).withdrawAll(tree.root, roles.randomPerson.address))
+        .to.emit(merkleFunder, 'Withdrew')
+        .withArgs(merkleFunderDepository.address, roles.randomPerson.address, amount);
       expect(await hre.ethers.provider.getBalance(roles.randomPerson.address)).to.equal(recipientBalance.add(amount));
     });
   });
 
-  describe('computeFunderDepositoryAddress', function () {
+  describe('computeMerkleFunderDepositoryAddress', function () {
     context('Root is not zero', function () {
       it('computes', async function () {
-        const { roles, funder, tree } = await loadFixture(deployFunder);
-        expect(await funder.computeFunderDepositoryAddress(roles.owner.address, tree.root)).to.equal(
-          await computeFunderDepositoryAddress(funder.address, roles.owner.address, tree.root)
+        const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunder);
+        expect(await merkleFunder.computeMerkleFunderDepositoryAddress(roles.owner.address, tree.root)).to.equal(
+          await computeMerkleFunderDepositoryAddress(merkleFunder.address, roles.owner.address, tree.root)
         );
       });
     });
     context('Root is zero', function () {
       it('reverts', async function () {
-        const { roles, funder } = await loadFixture(deployFunder);
+        const { roles, merkleFunder } = await loadFixture(deployMerkleFunder);
         await expect(
-          funder.connect(roles.owner).computeFunderDepositoryAddress(roles.owner.address, hre.ethers.constants.HashZero)
+          merkleFunder
+            .connect(roles.owner)
+            .computeMerkleFunderDepositoryAddress(roles.owner.address, hre.ethers.constants.HashZero)
         ).to.be.revertedWith('Root zero');
       });
     });
