@@ -11,7 +11,7 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   try {
     await Promise.all(
       Object.entries(config.merkleFunderDepositories).map(async ([chainId, merkleFunderDepositories]) => {
-        const merkleFunderContract = getMerkleFunderContract(path.join(__dirname, '../../'), chainId);
+        const merkleFunderContract = getMerkleFunderContract(path.join(__dirname, '../'), chainId);
         await fundChainRecipients(merkleFunderDepositories, merkleFunderContract);
       })
     );

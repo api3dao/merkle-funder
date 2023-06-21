@@ -6,11 +6,20 @@ provider:
   runtime: nodejs18.x
 
 plugins:
-  - serverless-plugin-typescript
+  - serverless-esbuild
   - serverless-offline
+
+custom:
+  esbuild:
+    packager: yarn
+    bundle: true
+    minify: true
 
 package:
   patterns:
+    - ./deployments/**
+    - '!./deployments/**/solcInputs'
+    - ./deployments/**/.chainId
     - ./config/config.json
     - ./config/credentials.json
 

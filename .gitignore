@@ -6,6 +6,7 @@ typechain
 typechain-types
 *.log
 .build
+.esbuild
 
 # Hardhat files
 cache
