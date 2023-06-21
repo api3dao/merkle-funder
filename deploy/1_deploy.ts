@@ -7,15 +7,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const { deployer } = await getNamedAccounts();
 
-  const funder = await deploy('Funder', {
+  const merkleFunder = await deploy('MerkleFunder', {
     from: deployer,
     log: true,
     args: [],
     deterministicDeployment: process.env.DETERMINISTIC ? ethers.constants.HashZero : undefined,
   });
 
-  log(`Deployed Funder at ${funder.address}`);
+  log(`Deployed MerkleFunder at ${merkleFunder.address}`);
 };
 
 export default func;
-func.tags = ['Funder'];
+func.tags = ['MerkleFunder'];

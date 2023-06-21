@@ -1,20 +1,31 @@
 import { goSync } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { FunderDepository__factory } from '../typechain-types';
+import { MerkleFunderDepository__factory } from '../typechain-types';
 
-export const computeFunderDepositoryAddress = async (funderAddress: string, owner: string, root: string) => {
-  //   console.log( "FunderDepository__factory.bytecode:", FunderDepository__factory.bytecode);
+export const computeMerkleFunderDepositoryAddress = async (
+  merkleFunderAddress: string,
+  owner: string,
+  root: string
+) => {
+  //   console.log( "MerkleFunderDepository__factory.bytecode:", MerkleFunderDepository__factory.bytecode);
 
-  //   const artifact = await artifacts.readArtifact("FunderDepository");
+  //   const artifact = await artifacts.readArtifact("MerkleFunderDepository");
   //   console.log("artifact.bytecode:", artifact.bytecode);
   //   console.log("artifact.deployedBytecode:", artifact.deployedBytecode);
 
   const initcode = ethers.utils.solidityPack(
     ['bytes', 'bytes'],
-    [FunderDepository__factory.bytecode, ethers.utils.defaultAbiCoder.encode(['address', 'bytes32'], [owner, root])]
+    [
+      MerkleFunderDepository__factory.bytecode,
+      ethers.utils.defaultAbiCoder.encode(['address', 'bytes32'], [owner, root]),
+    ]
   );
 
-  return ethers.utils.getCreate2Address(funderAddress, ethers.constants.HashZero, ethers.utils.keccak256(initcode));
+  return ethers.utils.getCreate2Address(
+    merkleFunderAddress,
+    ethers.constants.HashZero,
+    ethers.utils.keccak256(initcode)
+  );
 };
 
 export const decodeRevertString = (returndata: string) => {

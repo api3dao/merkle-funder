@@ -1,4 +1,4 @@
-# Funder
+# merkle-funder
 
 ```shell
 TODO
