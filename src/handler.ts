@@ -1,6 +1,6 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import loadConfig from './config';
-import { fundChainRecipients } from './merkleFunder';
+import { fundChainRecipients } from './merkle-funder';
 import path from 'path';
 import { getMerkleFunderContract } from './credentials';
 
