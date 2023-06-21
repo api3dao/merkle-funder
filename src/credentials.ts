@@ -17,6 +17,9 @@ const credentialsSchema = z.object({
 export const getMerkleFunderContract = (rootPath: string, chainId: string) => {
   // Find the chain name where the chainId matches the .chainId file on /deployments folder
   const deploymentsPath = path.join(rootPath, 'deployments');
+  if (!fs.existsSync(deploymentsPath)) {
+    throw new Error(`Directory does not exist: ${deploymentsPath}`);
+  }
   const chainDeployment = fs
     .readdirSync(deploymentsPath, { withFileTypes: true })
     .find((item) => fs.readFileSync(path.join(deploymentsPath, item.name, '.chainId'), 'utf-8') === chainId);
