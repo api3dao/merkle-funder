@@ -27,7 +27,7 @@ async function main() {
   const chainId = await hre.getChainId();
   console.log('Chain ID:', chainId);
 
-  const chainMerkleFunderDepositories = loadConfigResult.data.merkleFunderDepositories[parseInt(chainId)];
+  const chainMerkleFunderDepositories = loadConfigResult.data[parseInt(chainId)].merkleFunderDepositories;
   if (!chainMerkleFunderDepositories) {
     console.log('No merkleFunderDepositories for chain ID: ', chainId);
     return;

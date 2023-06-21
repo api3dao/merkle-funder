@@ -1,7 +1,9 @@
 import { z } from 'zod';
-import { chainConfigSchema, chainsConfigSchema, configSchema, valuesSchema } from './config';
+import { merkleFunderDepositoriesSchema, chainConfigSchema, configSchema, valuesSchema } from './config';
+
+export type Secrets = Record<string, string | undefined>;
 
 export type Values = z.infer<typeof valuesSchema>;
+export type MerkleFunderDepositories = z.infer<typeof merkleFunderDepositoriesSchema>;
 export type ChainConfig = z.infer<typeof chainConfigSchema>;
-export type ChainsConfig = z.infer<typeof chainsConfigSchema>;
 export type Config = z.infer<typeof configSchema>;
