@@ -3,9 +3,9 @@
 This repo contains contracts, scripts and a serverless function that can be used to send funds to addresses based on values from a configuration file
 
 - [`contracts`](./contracts/) - Smart contracts written in Solidity to manage funds sent to pre-defined addresses using a merkle-tree
-- [`deploy`](./deploy/) - Deploy script for the hardhat-deploy plugin. This script deploys the [MerkleFunder](./contracts/MerkleFunder.sol) contract
+- [`deploy`](./deploy/) - Deployment scripts for the hardhat-deploy plugin. Currently there is a single script that deploys the [MerkleFunder](./contracts/MerkleFunder.sol) contract
 - [`deployments`](./deployments/) - Parent directory for the hardhat-deploy script output. When MerkleFunder.sol is deploy to a new chain using this script, a new directory with the chain name will be added
-- [`scritps`](./scripts/) - Utility scripts to interact with the MerkleFunder contract
+- [`scripts`](./scripts/) - Utility scripts to interact with the MerkleFunder contract
 - [`src`](./src/) - Shared source code and the handler implementation for the serverless function
 
 ## Prerequisites
@@ -29,7 +29,7 @@ yarn build
 
 ### Deploy contracts
 
-1. Copy [.env.example](./env.example) to `.env` and add a new entries to this file with the RPC provider URL and the private key of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
+1. Copy [.env.example](./env.example) to `.env` and add new entries to this file with the RPC provider URL and set the private key of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
    > In case you would like to use a different `.env` file for instance, `.env.staging` or `.evn.prod` then you must set the `ENV` environment variable to `ENV=staging` or `ENV=prod`
 1. Copy [config.example.json](./config/config.example.json) to `config.json` and add a new entry using the chain ID as key for the object
    <!-- TODO: add more details about each field in the config -->
@@ -87,11 +87,13 @@ yarn sls:remove --stage <stageName>
 - Start a local ethereum node by running `yarn hh:node`
 - The scripts can be then run using `localhost` as `chainName`
   For example:
+
   ```shell
   yarn deploy:merkle-funder localhost
   yarn deploy:merkle-funder-depositories localhost
   yarn fund localhost
   ```
+
 - There are 2 ways to test the lambda function locally:
   1. `yarn sls:local` (uses serverless-offline plugin and this is the closest to actually deploying the function to AWS)
   1. `yarn sls:invoke:fundHandler`

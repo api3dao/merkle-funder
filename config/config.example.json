@@ -1,7 +1,7 @@
 {
   "31337": {
     "rpcUrl": "${RPC_URL_LOCALHOST}",
-    "privateKey": "${PRIVATE_KEY_LOCALHOST}",
+    "privateKey": "${PRIVATE_KEY}",
     "merkleFunderDepositories": [
       {
         "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",

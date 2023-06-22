@@ -36,6 +36,7 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   const startedAt = new Date();
   const config = loadConfig();
 
+  // TODO: replace with Promise.all? In the logs I see that handler finishes before printing all messages
   try {
     await Promise.all(
       Object.entries(config).map(async ([chainId, chainConfig]) => {
