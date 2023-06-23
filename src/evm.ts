@@ -7,12 +7,6 @@ export const computeMerkleFunderDepositoryAddress = async (
   owner: string,
   root: string
 ) => {
-  //   console.log( "MerkleFunderDepository__factory.bytecode:", MerkleFunderDepository__factory.bytecode);
-
-  //   const artifact = await artifacts.readArtifact("MerkleFunderDepository");
-  //   console.log("artifact.bytecode:", artifact.bytecode);
-  //   console.log("artifact.deployedBytecode:", artifact.deployedBytecode);
-
   const initcode = ethers.utils.solidityPack(
     ['bytes', 'bytes'],
     [

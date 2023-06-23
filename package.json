@@ -21,7 +21,7 @@
     "sls:remove": "sls remove --region us-east-1",
     "sls:local": "sls offline",
     "sls:invoke:fundHandler": "sls invoke local -f fundHandler",
-    "test": "yarn test:jest && hardhat test",
+    "test": "yarn test:unit && hardhat test",
     "test:unit": "jest"
   },
   "devDependencies": {

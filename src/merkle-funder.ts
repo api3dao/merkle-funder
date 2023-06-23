@@ -1,7 +1,6 @@
 import { go } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { MerkleFunderDepositories, decodeRevertString } from '.';
-import buildMerkleTree from './merkle-tree';
+import { MerkleFunderDepositories, buildMerkleTree, decodeRevertString } from './';
 
 export const fundChainRecipients = async (
   chainMerkleFunderDepositories: MerkleFunderDepositories,
