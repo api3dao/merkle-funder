@@ -44,7 +44,7 @@ contract MerkleFunderDepository is IMerkleFunderDepository {
     /// only be called by MerkleFunder.
     /// @param recipient Recipient address
     /// @param amount Amount
-    function withdraw(address recipient, uint256 amount) external {
+    function transfer(address recipient, uint256 amount) external {
         require(msg.sender == merkleFunder, "Sender not MerkleFunder");
         // MerkleFunder checks for balance so MerkleFunderDepository does not need to
         (bool success, ) = recipient.call{value: amount}("");

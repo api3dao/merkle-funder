@@ -106,7 +106,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
             ? amountNeededToTopUp
             : merkleFunderDepository.balance;
         require(amount != 0, "Amount zero");
-        MerkleFunderDepository(merkleFunderDepository).withdraw(
+        MerkleFunderDepository(merkleFunderDepository).transfer(
             recipient,
             amount
         );
@@ -137,7 +137,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
             merkleFunderDepository.balance >= amount,
             "Insufficient balance"
         );
-        MerkleFunderDepository(merkleFunderDepository).withdraw(
+        MerkleFunderDepository(merkleFunderDepository).transfer(
             recipient,
             amount
         );
