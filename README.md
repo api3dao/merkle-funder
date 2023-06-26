@@ -30,7 +30,6 @@ yarn build
 ### Deploy contracts
 
 1. Copy [.env.example](./env.example) to `.env` and add new entries to this file with the RPC provider URL and set the private key of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
-   > In case you would like to use a different `.env` file for instance, `.env.staging` or `.evn.prod` then you must set the `ENV` environment variable to `ENV=staging` or `ENV=prod`
 1. Copy [config.example.json](./config/config.example.json) to `config.json` and add a new entry using the chain ID as key for the object
    <!-- TODO: add more details about each field in the config -->
 1. Add a new entry to [hardhat.config.ts](./hardhat.config.ts) `networks` object
@@ -66,13 +65,14 @@ Another way to trigger funds to be sent from a `MerkleFunderDepository` to a rec
 
 1. Configure your AWS credentials
 1. Add a new entries for the environment variables mapping in [env-vars.yml](./env-vars.yml)
+1. Add the env vars to the .env file
 1. Deploy the function by running:
 
    ```shell
    yarn sls:deploy --stage <stageName>
    ```
 
-   Please note that the `stageName` must match the `.env.stageName` file name. Otherwise serverless will default to using `.env` file
+   Please note that serverless framework will try to match `stageName` with `.env.stageName` file name. Otherwise it will default to `.env` file
 
 ### Remove serverless function
 
@@ -95,5 +95,8 @@ yarn sls:remove --stage <stageName>
   ```
 
 - There are 2 ways to test the lambda function locally:
+
   1. `yarn sls:local` (uses serverless-offline plugin and this is the closest to actually deploying the function to AWS)
   1. `yarn sls:invoke:fundHandler`
+
+  > In case you want to use different environment variables when testing this function locally then the easiest is to create a `.env.dev` file which will have precedence over `.env` when executing either of the two commands. Another alternative is to create a `.env.local` (or `.env.development`, etc) and set the stage to `local`. For example: `yarn sls:local --stage local`

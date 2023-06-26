@@ -3,7 +3,7 @@ import 'hardhat-deploy';
 import '@nomicfoundation/hardhat-toolbox';
 import dotenv from 'dotenv';
 
-dotenv.config({ ...(process.env.ENV && { path: `.env.${process.env.ENV}` }) });
+dotenv.config();
 
 const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
 
