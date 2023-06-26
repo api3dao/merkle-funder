@@ -75,10 +75,10 @@ describe('MerkleFunderDepository', function () {
     });
   });
 
-  describe('withdraw', function () {
+  describe('transfer', function () {
     context('Sender is MerkleFunder', function () {
       context('Transfer is successful', function () {
-        it('withdraws', async function () {
+        it('transfers', async function () {
           const { roles, merkleFunderDepository } = await loadFixture(deploy);
           const amount = hre.ethers.utils.parseEther('1');
           await roles.randomPerson.sendTransaction({
@@ -86,7 +86,7 @@ describe('MerkleFunderDepository', function () {
             value: amount,
           });
           const balanceBefore = await hre.ethers.provider.getBalance(roles.randomPerson.address);
-          await merkleFunderDepository.connect(roles.merkleFunder).withdraw(roles.randomPerson.address, amount);
+          await merkleFunderDepository.connect(roles.merkleFunder).transfer(roles.randomPerson.address, amount);
           const balanceAfter = await hre.ethers.provider.getBalance(roles.randomPerson.address);
           expect(balanceAfter.sub(balanceBefore)).to.equal(amount);
         });
@@ -96,7 +96,7 @@ describe('MerkleFunderDepository', function () {
           const { roles, merkleFunderDepository } = await loadFixture(deploy);
           const amount = hre.ethers.utils.parseEther('1');
           await expect(
-            merkleFunderDepository.connect(roles.merkleFunder).withdraw(roles.randomPerson.address, amount)
+            merkleFunderDepository.connect(roles.merkleFunder).transfer(roles.randomPerson.address, amount)
           ).to.be.revertedWith('Transfer unsuccessful');
         });
       });
@@ -106,7 +106,7 @@ describe('MerkleFunderDepository', function () {
         const { roles, merkleFunderDepository } = await loadFixture(deploy);
         const amount = hre.ethers.utils.parseEther('1');
         await expect(
-          merkleFunderDepository.connect(roles.randomPerson).withdraw(roles.randomPerson.address, amount)
+          merkleFunderDepository.connect(roles.randomPerson).transfer(roles.randomPerson.address, amount)
         ).to.be.revertedWith('Sender not MerkleFunder');
       });
     });

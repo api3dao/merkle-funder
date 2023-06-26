@@ -5,7 +5,7 @@ import loadConfig from '../src/config';
 import buildMerkleTree from '../src/merkle-tree';
 
 async function main() {
-  const chainName = process.env.NETWORK;
+  const chainName = hre.network.name;
   console.log('Chain name:', chainName);
 
   const chainId = parseInt(await hre.getChainId());
@@ -26,7 +26,7 @@ async function main() {
     return;
   }
 
-  const chainMerkleFunderDepositories = loadConfigResult.data.merkleFunderDepositories[chainId];
+  const chainMerkleFunderDepositories = loadConfigResult.data[chainId].merkleFunderDepositories;
   if (!chainMerkleFunderDepositories) {
     console.log('No merkleFunderDepositories for chain: ', chainName, chainId);
     return;
@@ -66,7 +66,10 @@ async function main() {
       // If balance is lower than target balance then send funds
       const balance = getBalanceResult.data || hre.ethers.constants.Zero;
       console.log('MerkleFunderDepository current balance:', hre.ethers.utils.formatEther(balance));
+
+      // TODO: this target seems chain dependant and should not be hardcoded here
       const targetBalance = hre.ethers.utils.parseUnits('100', 'ether');
+
       if (balance.lt(targetBalance)) {
         const sendTransactionResult = await go(
           () =>
