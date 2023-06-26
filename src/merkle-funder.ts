@@ -1,7 +1,6 @@
 import { go } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { MerkleFunderDepositories, decodeRevertString } from '.';
-import buildMerkleTree from './merkle-tree';
+import { MerkleFunderDepositories, buildMerkleTree, decodeRevertString } from './';
 
 export const fundChainRecipients = async (
   chainMerkleFunderDepositories: MerkleFunderDepositories,
@@ -13,19 +12,16 @@ export const fundChainRecipients = async (
       const tree = buildMerkleTree(values);
       console.log('Merkle tree:\n', tree.render());
 
-      const multicallCalldata = values.map(({ recipient, lowThreshold, highThreshold }, treeValueIndex) => {
-        return merkleFunderContract.interface.encodeFunctionData(
-          'fund(address,bytes32,bytes32[],address,uint256,uint256)',
-          [
-            owner,
-            tree.root,
-            tree.getProof(treeValueIndex),
-            recipient,
-            ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
-            ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
-          ]
-        );
-      });
+      const multicallCalldata = values.map(({ recipient, lowThreshold, highThreshold }, treeValueIndex) =>
+        merkleFunderContract.interface.encodeFunctionData('fund(address,bytes32,bytes32[],address,uint256,uint256)', [
+          owner,
+          tree.root,
+          tree.getProof(treeValueIndex),
+          recipient,
+          ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
+          ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
+        ])
+      );
       console.log('Number of calldatas to be sent: ', multicallCalldata.length);
 
       // TODO: A potential improvement here is to batch these calls
@@ -56,9 +52,11 @@ export const fundChainRecipients = async (
           console.log('Failed to call merkleFunderContract.tryMulticall:', tryMulticallResult.error.message);
           return;
         }
-        console.log(`Funded ${successfulMulticallCalldata.length} recipients`);
+        console.log(
+          `Sent tx with hash ${tryMulticallResult.data.hash} that will send funds to ${successfulMulticallCalldata.length} recipients`
+        );
       } else {
-        console.log('Recipients are already funded');
+        console.log('All recipients are already funded');
       }
     })
   );
