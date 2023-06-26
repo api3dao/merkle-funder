@@ -22,7 +22,7 @@
     "sls:local": "sls offline",
     "sls:invoke:fundHandler": "sls invoke local -f fundHandler",
     "test": "yarn test:unit && yarn test:contracts",
-    "test:contracts": "hardhat test",
+    "test:contracts": "hardhat test --parallel",
     "test:unit": "jest"
   },
   "devDependencies": {
