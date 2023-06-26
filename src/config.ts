@@ -3,6 +3,7 @@ import fs from 'fs';
 import { reduce, template } from 'lodash';
 import { z } from 'zod';
 import { Secrets } from './types';
+import { ethers } from 'ethers';
 
 export const evmAddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 export const evmHashSchema = z.string().regex(/^0x[a-fA-F\d]{64}$/);
@@ -46,7 +47,9 @@ export const merkleFunderDepositoriesSchema = z.array(
 
 export const chainConfigSchema = z.object({
   rpcUrl: z.string().url(),
-  privateKey: evmHashSchema,
+  funderMnemonic: z.string().refine((mnemonic) => ethers.utils.isValidMnemonic(mnemonic), {
+    message: 'Invalid mnemonic',
+  }),
   merkleFunderDepositories: merkleFunderDepositoriesSchema,
 });
 

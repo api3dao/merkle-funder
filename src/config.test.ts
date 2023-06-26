@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { loadConfig } from './';
-import { generateRandomAddress, generateRandomBytes32 } from '../test/test-utils';
+import { generateRandomAddress } from '../test/test-utils';
 
 jest.mock('fs');
 
@@ -14,7 +14,7 @@ describe('loadConfig', () => {
     const configData = {
       31337: {
         rpcUrl: 'https://example.com',
-        privateKey: generateRandomBytes32(),
+        funderMnemonic: 'test test test test test test test test test test test junk',
         merkleFunderDepositories: [
           {
             owner: generateRandomAddress(),
@@ -42,7 +42,7 @@ describe('loadConfig', () => {
     const configPath = './config/config.json';
     const configData = {
       rpcUrl: 'https://${INVALID_ENV_VARIABLE}.com',
-      privateKey: '0x1234567890abcdef',
+      funderMnemonic: 'test test test test test test test test test test test junk',
       merkleFunderDepositories: [],
     };
 
@@ -70,20 +70,20 @@ describe('loadConfig', () => {
     const configData = {
       31337: {
         rpcUrl: 'https://${RPC_HOST}:${RPC_PORT}',
-        privateKey: '${PRIVATE_KEY}',
+        funderMnemonic: '${FUNDER_MNEMONIC}',
         merkleFunderDepositories,
       },
     };
-    const privateKey = generateRandomBytes32();
+    const funderMnemonic = 'test test test test test test test test test test test junk';
     const secrets = {
       RPC_HOST: 'example.com',
       RPC_PORT: '8545',
-      PRIVATE_KEY: privateKey,
+      FUNDER_MNEMONIC: funderMnemonic,
     };
     const expectedInterpolatedConfig = {
       31337: {
         rpcUrl: 'https://example.com:8545',
-        privateKey: privateKey,
+        funderMnemonic,
         merkleFunderDepositories,
       },
     };

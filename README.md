@@ -29,7 +29,7 @@ yarn build
 
 ### Deploy contracts
 
-1. Copy [.env.example](./env.example) to `.env` and add new entries to this file with the RPC provider URL and set the private key of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
+1. Copy [.env.example](./env.example) to `.env` and add new entries to this file with the RPC provider URL and set the mnemonic of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
 1. Copy [config.example.json](./config/config.example.json) to `config.json` and add a new entry using the chain ID as key for the object
    <!-- TODO: add more details about each field in the config -->
 1. Add a new entry to [hardhat.config.ts](./hardhat.config.ts) `networks` object
