@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
+const accounts = { mnemonic: process.env.MNEMONIC || '' };
 
 const config: HardhatUserConfig = {
   networks: {
