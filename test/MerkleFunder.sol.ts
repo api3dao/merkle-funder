@@ -280,7 +280,7 @@ describe('MerkleFunder', function () {
                       treeValue[1],
                       treeValue[2]
                     )
-                ).to.be.revertedWithCustomError(merkleFunder, 'BalanceNotLowEnough');
+                ).to.be.revertedWithCustomError(merkleFunder, 'RecipientBalanceLargerThanLowThreshold');
               });
             });
           });

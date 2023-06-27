@@ -88,7 +88,8 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         );
         if (!MerkleProof.verify(proof, root, leaf)) revert InvalidProof();
         uint256 recipientBalance = recipient.balance;
-        if (recipientBalance > lowThreshold) revert BalanceNotLowEnough();
+        if (recipientBalance > lowThreshold)
+            revert RecipientBalanceLargerThanLowThreshold();
         address payable merkleFunderDepository = ownerToRootToMerkleFunderDepositoryAddress[
                 owner
             ][root];

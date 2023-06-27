@@ -30,7 +30,7 @@ interface IMerkleFunder {
 
     error InvalidProof();
 
-    error BalanceNotLowEnough();
+    error RecipientBalanceLargerThanLowThreshold();
 
     error NoSuchMerkleFunderDepository();
 
