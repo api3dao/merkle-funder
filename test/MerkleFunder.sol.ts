@@ -131,6 +131,18 @@ describe('MerkleFunder', function () {
                           const recipientBalance = await hre.ethers.provider.getBalance(treeValue[0].toString());
                           const amountNeededToTopUp = hre.ethers.BigNumber.from(treeValue[2]).sub(recipientBalance);
                           // Note that we use `tree.getProof(treeValueIndex)` and not `tree.getProof(treeValue.treeIndex)`
+                          expect(
+                            await merkleFunder
+                              .connect(roles.randomPerson)
+                              .callStatic.fund(
+                                roles.owner.address,
+                                tree.root,
+                                tree.getProof(treeValueIndex),
+                                treeValue[0].toString(),
+                                treeValue[1],
+                                treeValue[2]
+                              )
+                          ).to.equal(amountNeededToTopUp);
                           await expect(
                             merkleFunder
                               .connect(roles.randomPerson)

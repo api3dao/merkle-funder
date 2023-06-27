@@ -69,6 +69,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
     /// @param recipient Recipient address
     /// @param lowThreshold Low hysteresis threshold
     /// @param highThreshold High hysteresis threshold
+    /// @return amount Amount used in funding
     function fund(
         address owner,
         bytes32 root,
@@ -76,7 +77,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         address recipient,
         uint256 lowThreshold,
         uint256 highThreshold
-    ) external override {
+    ) external override returns (uint256 amount) {
         require(recipient != address(0), "Recipient address zero");
         require(
             lowThreshold <= highThreshold,
@@ -102,7 +103,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         unchecked {
             amountNeededToTopUp = highThreshold - recipientBalance;
         }
-        uint256 amount = amountNeededToTopUp <= merkleFunderDepository.balance
+        amount = amountNeededToTopUp <= merkleFunderDepository.balance
             ? amountNeededToTopUp
             : merkleFunderDepository.balance;
         require(amount != 0, "Amount zero");
