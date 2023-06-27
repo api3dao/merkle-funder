@@ -150,12 +150,13 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
     /// limitations specified by the respective Merkle tree
     /// @param root Merkle tree root
     /// @param recipient Recipient address
-    function withdrawAll(bytes32 root, address recipient) external override {
-        withdraw(
-            root,
-            recipient,
-            ownerToRootToMerkleFunderDepositoryAddress[msg.sender][root].balance
-        );
+    function withdrawAll(
+        bytes32 root,
+        address recipient
+    ) external override returns (uint256 amount) {
+        amount = ownerToRootToMerkleFunderDepositoryAddress[msg.sender][root]
+            .balance;
+        withdraw(root, recipient, amount);
     }
 
     /// @notice Computes the address of the MerkleFunderDepository

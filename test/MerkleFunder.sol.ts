@@ -449,6 +449,9 @@ describe('MerkleFunder', function () {
       );
       const amount = await hre.ethers.provider.getBalance(merkleFunderDepository.address);
       const recipientBalance = await hre.ethers.provider.getBalance(roles.randomPerson.address);
+      expect(
+        await merkleFunder.connect(roles.owner).callStatic.withdrawAll(tree.root, roles.randomPerson.address)
+      ).to.equal(amount);
       await expect(merkleFunder.connect(roles.owner).withdrawAll(tree.root, roles.randomPerson.address))
         .to.emit(merkleFunder, 'Withdrew')
         .withArgs(merkleFunderDepository.address, roles.randomPerson.address, amount);

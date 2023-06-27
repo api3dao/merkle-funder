@@ -36,7 +36,10 @@ interface IMerkleFunder {
 
     function withdraw(bytes32 root, address recipient, uint256 amount) external;
 
-    function withdrawAll(bytes32 root, address recipient) external;
+    function withdrawAll(
+        bytes32 root,
+        address recipient
+    ) external returns (uint256 amount);
 
     function computeMerkleFunderDepositoryAddress(
         address owner,
