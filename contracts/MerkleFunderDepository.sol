@@ -45,10 +45,10 @@ contract MerkleFunderDepository is IMerkleFunderDepository {
     /// @param recipient Recipient address
     /// @param amount Amount
     function transfer(address recipient, uint256 amount) external {
-        require(msg.sender == merkleFunder, "Sender not MerkleFunder");
+        if (msg.sender != merkleFunder) revert SenderNotMerkleFunder();
         // MerkleFunder checks for balance so MerkleFunderDepository does not need to
         (bool success, ) = recipient.call{value: amount}("");
-        require(success, "Transfer unsuccessful");
+        if (!success) revert TransferUnsuccessful();
         // MerkleFunder emits event so MerkleFunderDepository does not need to
     }
 }

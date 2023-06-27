@@ -108,7 +108,7 @@ describe('MerkleFunder', function () {
           merkleFunder
             .connect(roles.owner)
             .deployMerkleFunderDepository(roles.owner.address, hre.ethers.constants.HashZero)
-        ).to.be.revertedWith('Root zero');
+        ).to.be.revertedWithCustomError(merkleFunder, 'RootZero');
       });
     });
   });
@@ -173,13 +173,17 @@ describe('MerkleFunder', function () {
                       );
                       const treeValueIndex = 0;
                       const [, treeValue] = Array.from(tree.entries())[treeValueIndex];
-                      await merkleFunder
-                        .connect(roles.randomPerson)
-                        .deployMerkleFunderDepository(roles.owner.address, tree.root);
                       const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
                         merkleFunder.address,
                         roles.owner.address,
                         tree.root
+                      );
+                      await merkleFunder
+                        .connect(roles.randomPerson)
+                        .deployMerkleFunderDepository(roles.owner.address, tree.root);
+                      const merkleFunderDepository = await hre.ethers.getContractAt(
+                        'MerkleFunderDepository',
+                        merkleFunderDepositoryAddress
                       );
                       await roles.randomPerson.sendTransaction({
                         to: merkleFunderDepositoryAddress,
@@ -196,7 +200,7 @@ describe('MerkleFunder', function () {
                             treeValue[1],
                             treeValue[2]
                           )
-                      ).to.be.revertedWith('Transfer unsuccessful');
+                      ).to.be.revertedWithCustomError(merkleFunderDepository, 'TransferUnsuccessful');
                     });
                   });
                 });
@@ -225,7 +229,7 @@ describe('MerkleFunder', function () {
                           treeValue[1],
                           treeValue[2]
                         )
-                    ).to.be.revertedWith('No such MerkleFunderDepository');
+                    ).to.be.revertedWithCustomError(merkleFunder, 'NoSuchMerkleFunderDepository');
                   });
                 });
               });
@@ -248,7 +252,7 @@ describe('MerkleFunder', function () {
                         treeValue[1],
                         treeValue[2]
                       )
-                  ).to.be.revertedWith('Amount zero');
+                  ).to.be.revertedWithCustomError(merkleFunder, 'AmountZero');
                 });
               });
             });
@@ -276,7 +280,7 @@ describe('MerkleFunder', function () {
                       treeValue[1],
                       treeValue[2]
                     )
-                ).to.be.revertedWith('Balance not low enough');
+                ).to.be.revertedWithCustomError(merkleFunder, 'BalanceNotLowEnough');
               });
             });
           });
@@ -296,7 +300,7 @@ describe('MerkleFunder', function () {
                     treeValue[1],
                     treeValue[2]
                   )
-              ).to.be.revertedWith('Invalid proof');
+              ).to.be.revertedWithCustomError(merkleFunder, 'InvalidProof');
             });
           });
         });
@@ -318,7 +322,7 @@ describe('MerkleFunder', function () {
                   treeValue[1],
                   treeValue[2]
                 )
-            ).to.be.revertedWith('High threshold zero');
+            ).to.be.revertedWithCustomError(merkleFunder, 'HighThresholdZero');
           });
         });
       });
@@ -340,7 +344,7 @@ describe('MerkleFunder', function () {
                 treeValue[1],
                 treeValue[2]
               )
-          ).to.be.revertedWith('Low threshold higher than high');
+          ).to.be.revertedWithCustomError(merkleFunder, 'LowThresholdHigherThanHigh');
         });
       });
     });
@@ -365,7 +369,7 @@ describe('MerkleFunder', function () {
               treeValue[1],
               treeValue[2]
             )
-        ).to.be.revertedWith('Recipient address zero');
+        ).to.be.revertedWithCustomError(merkleFunder, 'RecipientAddressZero');
       });
     });
   });
@@ -392,11 +396,13 @@ describe('MerkleFunder', function () {
             });
             context('Transfer is not successful', function () {
               it('reverts', async function () {
-                const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
+                const { roles, merkleFunder, tree, merkleFunderDepository } = await loadFixture(
+                  deployMerkleFunderAndMerkleFunderDepository
+                );
                 const amount = hre.ethers.utils.parseEther('1');
                 await expect(
                   merkleFunder.connect(roles.owner).withdraw(tree.root, merkleFunder.address, amount)
-                ).to.be.revertedWith('Transfer unsuccessful');
+                ).to.be.revertedWithCustomError(merkleFunderDepository, 'TransferUnsuccessful');
               });
             });
           });
@@ -408,7 +414,7 @@ describe('MerkleFunder', function () {
               const amount = (await hre.ethers.provider.getBalance(merkleFunderDepository.address)).add(1);
               await expect(
                 merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount)
-              ).to.be.revertedWith('Insufficient balance');
+              ).to.be.revertedWithCustomError(merkleFunder, 'InsufficientBalance');
             });
           });
         });
@@ -418,7 +424,7 @@ describe('MerkleFunder', function () {
             const amount = hre.ethers.utils.parseEther('1');
             await expect(
               merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, amount)
-            ).to.be.revertedWith('No such MerkleFunderDepository');
+            ).to.be.revertedWithCustomError(merkleFunder, 'NoSuchMerkleFunderDepository');
           });
         });
       });
@@ -427,7 +433,7 @@ describe('MerkleFunder', function () {
           const { roles, merkleFunder, tree } = await loadFixture(deployMerkleFunderAndMerkleFunderDepository);
           await expect(
             merkleFunder.connect(roles.owner).withdraw(tree.root, roles.randomPerson.address, 0)
-          ).to.be.revertedWith('Amount zero');
+          ).to.be.revertedWithCustomError(merkleFunder, 'AmountZero');
         });
       });
     });
@@ -437,7 +443,7 @@ describe('MerkleFunder', function () {
         const amount = hre.ethers.utils.parseEther('1');
         await expect(
           merkleFunder.connect(roles.owner).withdraw(tree.root, hre.ethers.constants.AddressZero, amount)
-        ).to.be.revertedWith('Recipient address zero');
+        ).to.be.revertedWithCustomError(merkleFunder, 'RecipientAddressZero');
       });
     });
   });
@@ -475,7 +481,7 @@ describe('MerkleFunder', function () {
           merkleFunder
             .connect(roles.owner)
             .computeMerkleFunderDepositoryAddress(roles.owner.address, hre.ethers.constants.HashZero)
-        ).to.be.revertedWith('Root zero');
+        ).to.be.revertedWithCustomError(merkleFunder, 'RootZero');
       });
     });
   });
