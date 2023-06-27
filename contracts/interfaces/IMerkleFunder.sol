@@ -32,7 +32,7 @@ interface IMerkleFunder {
         address recipient,
         uint256 lowThreshold,
         uint256 highThreshold
-    ) external;
+    ) external returns (uint256 amount);
 
     function withdraw(bytes32 root, address recipient, uint256 amount) external;
 
