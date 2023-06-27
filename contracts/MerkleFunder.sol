@@ -37,7 +37,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
     /// @notice Called to deterministically deploy the MerkleFunderDepository
     /// with the owner address and the Merkle tree root
     /// @dev The owner address is allowed to be zero in case the deployer wants
-    /// to disallow `withdraw()` being called for the respective
+    /// to disallow `withdraw()` from being called for the respective
     /// MerkleFunderDepository
     /// @param owner Owner address
     /// @param root Merkle tree root
