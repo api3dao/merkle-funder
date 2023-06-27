@@ -64,8 +64,13 @@ This command will trigger funds to be sent to recipients defined in `config.json
 Another way to trigger funds to be sent from a `MerkleFunderDepository` to a recipient address is to run the scheduled lambda function on a 1 minute interval
 
 1. Configure your AWS credentials
-1. Add a new entries for the environment variables mapping in [env-vars.yml](./env-vars.yml)
 1. Add the env vars to the .env file
+1. Run the following script to generate the env var mapping file called [env-vars.yml](./env-vars.yml) that is referenced in serverless.yml:
+
+   ```shell
+   yarn env-vars:write
+   ```
+
 1. Deploy the function by running:
 
    ```shell
