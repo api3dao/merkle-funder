@@ -24,7 +24,7 @@ const getMerkleFunderContract = (chainConfig: ChainConfig, rootPath: string, cha
 
   // Connect to the network and get the signer
   const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
-  const signer = new ethers.Wallet(chainConfig.privateKey).connect(provider);
+  const signer = ethers.Wallet.fromMnemonic(chainConfig.mnemonic).connect(provider);
 
   // Return the merkleFunder contract
   return new ethers.Contract(merkleFunderDeployment.address, merkleFunderDeployment.abi, signer);
