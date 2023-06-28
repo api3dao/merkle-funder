@@ -131,6 +131,18 @@ describe('MerkleFunder', function () {
                           const recipientBalance = await hre.ethers.provider.getBalance(treeValue[0].toString());
                           const amountNeededToTopUp = hre.ethers.BigNumber.from(treeValue[2]).sub(recipientBalance);
                           // Note that we use `tree.getProof(treeValueIndex)` and not `tree.getProof(treeValue.treeIndex)`
+                          expect(
+                            await merkleFunder
+                              .connect(roles.randomPerson)
+                              .callStatic.fund(
+                                roles.owner.address,
+                                tree.root,
+                                tree.getProof(treeValueIndex),
+                                treeValue[0].toString(),
+                                treeValue[1],
+                                treeValue[2]
+                              )
+                          ).to.equal(amountNeededToTopUp);
                           await expect(
                             merkleFunder
                               .connect(roles.randomPerson)
@@ -437,6 +449,9 @@ describe('MerkleFunder', function () {
       );
       const amount = await hre.ethers.provider.getBalance(merkleFunderDepository.address);
       const recipientBalance = await hre.ethers.provider.getBalance(roles.randomPerson.address);
+      expect(
+        await merkleFunder.connect(roles.owner).callStatic.withdrawAll(tree.root, roles.randomPerson.address)
+      ).to.equal(amount);
       await expect(merkleFunder.connect(roles.owner).withdrawAll(tree.root, roles.randomPerson.address))
         .to.emit(merkleFunder, 'Withdrew')
         .withArgs(merkleFunderDepository.address, roles.randomPerson.address, amount);
