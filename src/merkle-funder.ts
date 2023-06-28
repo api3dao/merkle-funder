@@ -1,12 +1,13 @@
+import { getGasPrice } from '@api3/airnode-utilities';
 import { go } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { MerkleFunderDepositories, buildMerkleTree, decodeRevertString } from './';
+import { ChainConfig, buildMerkleTree, decodeRevertString } from './';
 
 export const fundChainRecipients = async (
-  chainMerkleFunderDepositories: MerkleFunderDepositories,
+  chainConfig: Pick<ChainConfig, 'options' | 'merkleFunderDepositories'>,
   merkleFunderContract: ethers.Contract
 ) => {
-  for (const { owner, values } of chainMerkleFunderDepositories) {
+  for (const { owner, values } of chainConfig.merkleFunderDepositories) {
     // Build merkle tree
     const tree = buildMerkleTree(values);
     console.log('Merkle tree:\n', tree.render());
@@ -45,8 +46,14 @@ export const fundChainRecipients = async (
 
     // Try to send the calldatas
     if (successfulMulticallCalldata.length > 0) {
+      // Get the latest gas price
+      const [logs, gasTarget] = await getGasPrice(merkleFunderContract.provider, chainConfig.options);
+      logs.forEach((log) => console.log(log.error ? log.error.message : log.message));
+
       // We still tryMulticall in case a recipient is funded by someone else in the meantime
-      const tryMulticallResult = await go(() => merkleFunderContract.tryMulticall(successfulMulticallCalldata));
+      const tryMulticallResult = await go(() =>
+        merkleFunderContract.tryMulticall(successfulMulticallCalldata, { ...gasTarget })
+      );
       if (!tryMulticallResult.success) {
         console.log('Failed to call merkleFunderContract.tryMulticall:', tryMulticallResult.error.message);
         continue;
