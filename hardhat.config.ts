@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const accounts = { mnemonic: process.env.FUNDER_MNEMONIC || '' };
+const accounts = { mnemonic: process.env.MNEMONIC || '' };
 
 const config: HardhatUserConfig = {
   networks: {
