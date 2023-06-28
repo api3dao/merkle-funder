@@ -24,7 +24,7 @@ const getMerkleFunderContract = (chainConfig: ChainConfig, rootPath: string, cha
 
   // Connect to the network and get the signer
   const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
-  const signer = ethers.Wallet.fromMnemonic(chainConfig.mnemonic).connect(provider);
+  const signer = ethers.Wallet.fromMnemonic(chainConfig.funderMnemonic).connect(provider);
 
   // Return the merkleFunder contract
   return new ethers.Contract(merkleFunderDeployment.address, merkleFunderDeployment.abi, signer);
@@ -34,19 +34,22 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   const startedAt = new Date();
   const config = loadConfig();
 
-  // TODO: replace with Promise.all? In the logs I see that handler finishes before printing all messages
-  try {
-    await Promise.all(
-      Object.entries(config).map(async ([chainId, chainConfig]) => {
-        const merkleFunderContract = getMerkleFunderContract(chainConfig, path.join(__dirname, '../'), chainId);
-        await fundChainRecipients(chainConfig.merkleFunderDepositories, merkleFunderContract);
-      })
-    );
-  } catch (err) {
-    const error = err as Error;
-    console.error(error.message);
-  }
+  const chainFundingResults = await Promise.allSettled(
+    Object.entries(config).map(async ([chainId, chainConfig]) => {
+      const merkleFunderContract = getMerkleFunderContract(chainConfig, path.join(__dirname, '../'), chainId);
+      await fundChainRecipients(chainConfig.merkleFunderDepositories, merkleFunderContract);
+    })
+  );
+
+  chainFundingResults.forEach((result) => {
+    if (result.status === 'rejected') {
+      console.log(result.reason);
+    }
+  });
 
   const endedAt = new Date();
   console.log(`Scheduled task finished running. Run delta: ${(endedAt.getTime() - startedAt.getTime()) / 1000} s`);
+
+  // Wait .5 sec for all logs to get printed before ending the lambda invocation
+  await new Promise((resolve) => setTimeout(resolve, 500));
 };

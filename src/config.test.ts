@@ -14,7 +14,7 @@ describe('loadConfig', () => {
     const configData = {
       31337: {
         rpcUrl: 'https://example.com',
-        mnemonic: 'test test test test test test test test test test test junk',
+        funderMnemonic: 'test test test test test test test test test test test junk',
         merkleFunderDepositories: [
           {
             owner: generateRandomAddress(),
@@ -42,7 +42,7 @@ describe('loadConfig', () => {
     const configPath = './config/config.json';
     const configData = {
       rpcUrl: 'https://${INVALID_ENV_VARIABLE}.com',
-      mnemonic: 'test test test test test test test test test test test junk',
+      funderMnemonic: 'test test test test test test test test test test test junk',
       merkleFunderDepositories: [],
     };
 
@@ -70,7 +70,7 @@ describe('loadConfig', () => {
     const configData = {
       31337: {
         rpcUrl: 'https://${RPC_HOST}:${RPC_PORT}',
-        mnemonic: '${MNEMONIC}',
+        funderMnemonic: '${MNEMONIC}',
         merkleFunderDepositories,
       },
     };

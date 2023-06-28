@@ -47,7 +47,7 @@ export const merkleFunderDepositoriesSchema = z.array(
 
 export const chainConfigSchema = z.object({
   rpcUrl: z.string().url(),
-  mnemonic: z.string().refine((mnemonic) => ethers.utils.isValidMnemonic(mnemonic), {
+  funderMnemonic: z.string().refine((mnemonic) => ethers.utils.isValidMnemonic(mnemonic), {
     message: 'Invalid mnemonic',
   }),
   merkleFunderDepositories: merkleFunderDepositoriesSchema,
