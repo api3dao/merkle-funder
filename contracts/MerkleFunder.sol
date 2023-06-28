@@ -37,7 +37,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
     /// @notice Called to deterministically deploy the MerkleFunderDepository
     /// with the owner address and the Merkle tree root
     /// @dev The owner address is allowed to be zero in case the deployer wants
-    /// to disallow `withdraw()` being called for the respective
+    /// to disallow `withdraw()` from being called for the respective
     /// MerkleFunderDepository
     /// @param owner Owner address
     /// @param root Merkle tree root
@@ -46,7 +46,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         address owner,
         bytes32 root
     ) external override returns (address payable merkleFunderDepository) {
-        require(root != bytes32(0), "Root zero");
+        if (root == bytes32(0)) revert RootZero();
         merkleFunderDepository = payable(
             new MerkleFunderDepository{salt: bytes32(0)}(owner, root)
         );
@@ -78,27 +78,23 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         uint256 lowThreshold,
         uint256 highThreshold
     ) external override returns (uint256 amount) {
-        require(recipient != address(0), "Recipient address zero");
-        require(
-            lowThreshold <= highThreshold,
-            "Low threshold higher than high"
-        );
-        require(highThreshold != 0, "High threshold zero");
+        if (recipient == address(0)) revert RecipientAddressZero();
+        if (lowThreshold > highThreshold) revert LowThresholdHigherThanHigh();
+        if (highThreshold == 0) revert HighThresholdZero();
         bytes32 leaf = keccak256(
             bytes.concat(
                 keccak256(abi.encode(recipient, lowThreshold, highThreshold))
             )
         );
-        require(MerkleProof.verify(proof, root, leaf), "Invalid proof");
+        if (!MerkleProof.verify(proof, root, leaf)) revert InvalidProof();
         uint256 recipientBalance = recipient.balance;
-        require(recipientBalance <= lowThreshold, "Balance not low enough");
+        if (recipientBalance > lowThreshold)
+            revert RecipientBalanceLargerThanLowThreshold();
         address payable merkleFunderDepository = ownerToRootToMerkleFunderDepositoryAddress[
                 owner
             ][root];
-        require(
-            merkleFunderDepository != address(0),
-            "No such MerkleFunderDepository"
-        );
+        if (merkleFunderDepository == address(0))
+            revert NoSuchMerkleFunderDepository();
         uint256 amountNeededToTopUp;
         unchecked {
             amountNeededToTopUp = highThreshold - recipientBalance;
@@ -106,7 +102,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         amount = amountNeededToTopUp <= merkleFunderDepository.balance
             ? amountNeededToTopUp
             : merkleFunderDepository.balance;
-        require(amount != 0, "Amount zero");
+        if (amount == 0) revert AmountZero();
         MerkleFunderDepository(merkleFunderDepository).transfer(
             recipient,
             amount
@@ -125,19 +121,15 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         address recipient,
         uint256 amount
     ) public override {
-        require(recipient != address(0), "Recipient address zero");
-        require(amount != 0, "Amount zero");
+        if (recipient == address(0)) revert RecipientAddressZero();
+        if (amount == 0) revert AmountZero();
         address payable merkleFunderDepository = ownerToRootToMerkleFunderDepositoryAddress[
                 msg.sender
             ][root];
-        require(
-            merkleFunderDepository != address(0),
-            "No such MerkleFunderDepository"
-        );
-        require(
-            merkleFunderDepository.balance >= amount,
-            "Insufficient balance"
-        );
+        if (merkleFunderDepository == address(0))
+            revert NoSuchMerkleFunderDepository();
+        if (merkleFunderDepository.balance < amount)
+            revert InsufficientBalance();
         MerkleFunderDepository(merkleFunderDepository).transfer(
             recipient,
             amount
@@ -168,7 +160,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
         address owner,
         bytes32 root
     ) external view override returns (address merkleFunderDepository) {
-        require(root != bytes32(0), "Root zero");
+        if (root == bytes32(0)) revert RootZero();
         merkleFunderDepository = Create2.computeAddress(
             bytes32(0),
             keccak256(

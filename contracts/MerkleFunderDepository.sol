@@ -9,8 +9,8 @@ import "./interfaces/IMerkleFunderDepository.sol";
 /// @notice As noted above, this contract should only be deployed by a
 /// MerkleFunder contract. Since the owner address and the Merkle tree root are
 /// immutable, the only way to update these is to deploy a new
-/// MerkleFunderDepository with the desired parameters and have the previous
-/// owner withdraw funds to the new MerkleFunderDepository.
+/// MerkleFunderDepository with the desired parameters and have the owner of
+/// the previous MerkleFunderDepository withdraw funds to the new one.
 contract MerkleFunderDepository is IMerkleFunderDepository {
     /// @notice Address of the MerkleFunder that deployed this contract
     address public immutable override merkleFunder;
@@ -45,10 +45,12 @@ contract MerkleFunderDepository is IMerkleFunderDepository {
     /// @param recipient Recipient address
     /// @param amount Amount
     function transfer(address recipient, uint256 amount) external {
-        require(msg.sender == merkleFunder, "Sender not MerkleFunder");
-        // MerkleFunder checks for balance so MerkleFunderDepository does not need to
+        if (msg.sender != merkleFunder) revert SenderNotMerkleFunder();
+        // MerkleFunder checks for balance so MerkleFunderDepository does not
+        // need to
         (bool success, ) = recipient.call{value: amount}("");
-        require(success, "Transfer unsuccessful");
-        // MerkleFunder emits event so MerkleFunderDepository does not need to
+        if (!success) revert TransferUnsuccessful();
+        // MerkleFunder emits the event so MerkleFunderDepository does not need
+        // to
     }
 }

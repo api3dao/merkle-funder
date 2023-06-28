@@ -97,7 +97,7 @@ describe('MerkleFunderDepository', function () {
           const amount = hre.ethers.utils.parseEther('1');
           await expect(
             merkleFunderDepository.connect(roles.merkleFunder).transfer(roles.randomPerson.address, amount)
-          ).to.be.revertedWith('Transfer unsuccessful');
+          ).to.be.revertedWithCustomError(merkleFunderDepository, 'TransferUnsuccessful');
         });
       });
     });
@@ -107,7 +107,7 @@ describe('MerkleFunderDepository', function () {
         const amount = hre.ethers.utils.parseEther('1');
         await expect(
           merkleFunderDepository.connect(roles.randomPerson).transfer(roles.randomPerson.address, amount)
-        ).to.be.revertedWith('Sender not MerkleFunder');
+        ).to.be.revertedWithCustomError(merkleFunderDepository, 'SenderNotMerkleFunder');
       });
     });
   });

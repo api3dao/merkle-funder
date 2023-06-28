@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 interface IMerkleFunder {
     event DeployedMerkleFunderDepository(
@@ -19,6 +19,24 @@ interface IMerkleFunder {
         address recipient,
         uint256 amount
     );
+
+    error RootZero();
+
+    error RecipientAddressZero();
+
+    error LowThresholdHigherThanHigh();
+
+    error HighThresholdZero();
+
+    error InvalidProof();
+
+    error RecipientBalanceLargerThanLowThreshold();
+
+    error NoSuchMerkleFunderDepository();
+
+    error AmountZero();
+
+    error InsufficientBalance();
 
     function deployMerkleFunderDepository(
         address owner,
