@@ -142,6 +142,7 @@ contract MerkleFunder is SelfMulticall, IMerkleFunder {
     /// limitations specified by the respective Merkle tree
     /// @param root Merkle tree root
     /// @param recipient Recipient address
+    /// @return amount Withdrawal amount
     function withdrawAll(
         bytes32 root,
         address recipient
