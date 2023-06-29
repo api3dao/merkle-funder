@@ -7,6 +7,7 @@ export const fundChainRecipients = async (
   chainConfig: Pick<ChainConfig, 'options' | 'merkleFunderDepositories'>,
   merkleFunderContract: ethers.Contract
 ) => {
+  let nonce: number | null = null;
   for (const { owner, values } of chainConfig.merkleFunderDepositories) {
     // Build merkle tree
     const tree = buildMerkleTree(values);
@@ -24,7 +25,6 @@ export const fundChainRecipients = async (
     );
     console.log('Number of calldatas to be sent: ', multicallCalldata.length);
 
-    // TODO: A potential improvement here is to batch these calls
     const tryStaticMulticallResult = await go(() => merkleFunderContract.callStatic.tryMulticall(multicallCalldata));
     if (!tryStaticMulticallResult.success) {
       console.log(
@@ -45,14 +45,17 @@ export const fundChainRecipients = async (
     }, [] as string[]);
 
     // Try to send the calldatas
+    // TODO: A potential improvement here is to batch these calls
     if (successfulMulticallCalldata.length > 0) {
+      nonce = nonce ?? (await merkleFunderContract.signer.getTransactionCount());
+
       // Get the latest gas price
       const [logs, gasTarget] = await getGasPrice(merkleFunderContract.provider, chainConfig.options);
       logs.forEach((log) => console.log(log.error ? log.error.message : log.message));
 
       // We still tryMulticall in case a recipient is funded by someone else in the meantime
       const tryMulticallResult = await go(() =>
-        merkleFunderContract.tryMulticall(successfulMulticallCalldata, { ...gasTarget })
+        merkleFunderContract.tryMulticall(successfulMulticallCalldata, { nonce, ...gasTarget })
       );
       if (!tryMulticallResult.success) {
         console.log('Failed to call merkleFunderContract.tryMulticall:', tryMulticallResult.error.message);
@@ -61,6 +64,7 @@ export const fundChainRecipients = async (
       console.log(
         `Sent tx with hash ${tryMulticallResult.data.hash} that will send funds to ${successfulMulticallCalldata.length} recipients`
       );
+      nonce++;
     } else {
       console.log('No tx was sent. All recipients are already funded');
     }
