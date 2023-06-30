@@ -1,7 +1,27 @@
 {
   "31337": {
-    "rpcUrl": "${RPC_URL_LOCALHOST}",
-    "mnemonic": "${MNEMONIC}",
+    "funderMnemonic": "${MNEMONIC}",
+    "providers": {
+      "local": {
+        "url": "${RPC_URL_LOCALHOST}"
+      }
+    },
+    "options": {
+      "gasPriceOracle": [
+        {
+          "gasPriceStrategy": "providerRecommendedGasPrice",
+          "recommendedGasPriceMultiplier": 1.2
+        },
+        {
+          "gasPriceStrategy": "constantGasPrice",
+          "gasPrice": {
+            "value": 10,
+            "unit": "gwei"
+          }
+        }
+      ],
+      "fulfillmentGasLimit": 200000
+    },
     "merkleFunderDepositories": [
       {
         "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",

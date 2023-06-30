@@ -13,8 +13,28 @@ describe('loadConfig', () => {
     const configPath = './config/config.json';
     const configData = {
       31337: {
-        rpcUrl: 'https://example.com',
-        mnemonic: 'test test test test test test test test test test test junk',
+        funderMnemonic: 'test test test test test test test test test test test junk',
+        providers: {
+          local: {
+            url: 'https://example.com',
+          },
+        },
+        options: {
+          gasPriceOracle: [
+            {
+              gasPriceStrategy: 'providerRecommendedGasPrice',
+              recommendedGasPriceMultiplier: 1.2,
+            },
+            {
+              gasPriceStrategy: 'constantGasPrice',
+              gasPrice: {
+                value: 10,
+                unit: 'gwei',
+              },
+            },
+          ],
+          fulfillmentGasLimit: 200000,
+        },
         merkleFunderDepositories: [
           {
             owner: generateRandomAddress(),
@@ -41,8 +61,28 @@ describe('loadConfig', () => {
   it('should throw an error if secrets interpolation fails', () => {
     const configPath = './config/config.json';
     const configData = {
-      rpcUrl: 'https://${INVALID_ENV_VARIABLE}.com',
-      mnemonic: 'test test test test test test test test test test test junk',
+      funderMnemonic: 'test test test test test test test test test test test junk',
+      providers: {
+        local: {
+          url: 'https://${INVALID_ENV_VARIABLE}.com',
+        },
+      },
+      options: {
+        gasPriceOracle: [
+          {
+            gasPriceStrategy: 'providerRecommendedGasPrice',
+            recommendedGasPriceMultiplier: 1.2,
+          },
+          {
+            gasPriceStrategy: 'constantGasPrice',
+            gasPrice: {
+              value: 10,
+              unit: 'gwei',
+            },
+          },
+        ],
+        fulfillmentGasLimit: 200000,
+      },
       merkleFunderDepositories: [],
     };
 
@@ -55,6 +95,22 @@ describe('loadConfig', () => {
 
   it('should interpolate variables in the config using the provided secrets', () => {
     const configPath = './config/config.json';
+    const options = {
+      gasPriceOracle: [
+        {
+          gasPriceStrategy: 'providerRecommendedGasPrice',
+          recommendedGasPriceMultiplier: 1.2,
+        },
+        {
+          gasPriceStrategy: 'constantGasPrice',
+          gasPrice: {
+            value: 10,
+            unit: 'gwei',
+          },
+        },
+      ],
+      fulfillmentGasLimit: 200000,
+    };
     const merkleFunderDepositories = [
       {
         owner: generateRandomAddress(),
@@ -69,8 +125,13 @@ describe('loadConfig', () => {
     ];
     const configData = {
       31337: {
-        rpcUrl: 'https://${RPC_HOST}:${RPC_PORT}',
-        mnemonic: '${MNEMONIC}',
+        funderMnemonic: '${MNEMONIC}',
+        providers: {
+          local: {
+            url: 'https://${RPC_HOST}:${RPC_PORT}',
+          },
+        },
+        options,
         merkleFunderDepositories,
       },
     };
@@ -82,8 +143,13 @@ describe('loadConfig', () => {
     };
     const expectedInterpolatedConfig = {
       31337: {
-        rpcUrl: 'https://example.com:8545',
-        mnemonic,
+        funderMnemonic: mnemonic,
+        providers: {
+          local: {
+            url: 'https://example.com:8545',
+          },
+        },
+        options,
         merkleFunderDepositories,
       },
     };

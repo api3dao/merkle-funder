@@ -1,9 +1,10 @@
+import { config as airnodeConfig } from '@api3/airnode-validator';
 import { GoResult, goSync } from '@api3/promise-utils';
+import { ethers } from 'ethers';
 import fs from 'fs';
 import { reduce, template } from 'lodash';
 import { z } from 'zod';
 import { Secrets } from './types';
-import { ethers } from 'ethers';
 
 export const evmAddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 export const evmHashSchema = z.string().regex(/^0x[a-fA-F\d]{64}$/);
@@ -46,10 +47,11 @@ export const merkleFunderDepositoriesSchema = z.array(
 );
 
 export const chainConfigSchema = z.object({
-  rpcUrl: z.string().url(),
-  mnemonic: z.string().refine((mnemonic) => ethers.utils.isValidMnemonic(mnemonic), {
+  funderMnemonic: z.string().refine((mnemonic) => ethers.utils.isValidMnemonic(mnemonic), {
     message: 'Invalid mnemonic',
   }),
+  providers: airnodeConfig.providersSchema,
+  options: airnodeConfig.chainOptionsSchema,
   merkleFunderDepositories: merkleFunderDepositoriesSchema,
 });
 

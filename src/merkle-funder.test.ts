@@ -1,7 +1,26 @@
+const getGasPriceMock = jest.fn().mockResolvedValue([
+  [{ message: 'mocked-get-gas-price-message' }],
+  {
+    type: 0,
+    gasPrice: {
+      type: 'BigNumber',
+      hex: '0x02540be400',
+    },
+    gasLimit: {
+      type: 'BigNumber',
+      hex: '0x030d40',
+    },
+  },
+]);
+
 import { ethers } from 'ethers';
+import { ChainOptions, MerkleFunderDepositories, NamedUnits, decodeRevertString } from '.';
 import { fundChainRecipients } from './merkle-funder';
-import { MerkleFunderDepositories, NamedUnits, decodeRevertString } from '.';
 import buildMerkleTree from './merkle-tree';
+
+jest.mock('@api3/airnode-utilities', () => ({
+  getGasPrice: getGasPriceMock,
+}));
 
 jest.mock('./merkle-tree', () => ({
   __esModule: true,
@@ -63,9 +82,27 @@ describe('fundChainRecipients', () => {
         tryMulticall: mockContractCallStaticTryMulticall,
       },
       tryMulticall: mockContractTryMulticall,
+      provider: new ethers.providers.JsonRpcProvider('http://localhost:8545'),
     };
 
-    const chainMerkleFunderDepositories: MerkleFunderDepositories = [
+    const options: ChainOptions = {
+      gasPriceOracle: [
+        {
+          gasPriceStrategy: 'providerRecommendedGasPrice',
+          recommendedGasPriceMultiplier: 1.2,
+        },
+        {
+          gasPriceStrategy: 'constantGasPrice',
+          gasPrice: {
+            value: 10,
+            unit: 'gwei',
+          },
+        },
+      ],
+      fulfillmentGasLimit: 200000,
+    };
+
+    const merkleFunderDepositories: MerkleFunderDepositories = [
       {
         owner,
         values,
@@ -75,12 +112,11 @@ describe('fundChainRecipients', () => {
     // Capture console.log outputs
     const consoleLogSpy = jest.spyOn(console, 'log');
 
-    await fundChainRecipients(chainMerkleFunderDepositories, mockContract as unknown as ethers.Contract);
+    await fundChainRecipients({ options, merkleFunderDepositories }, mockContract as unknown as ethers.Contract);
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
     expect(consoleLogSpy).toHaveBeenCalledWith('Merkle tree:\n', 'mocked-merkle-tree-render');
-
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith(
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof1, values[0].recipient, ethers.utils.parseEther('10'), ethers.utils.parseEther('20')]
@@ -90,7 +126,6 @@ describe('fundChainRecipients', () => {
       [owner, treeRoot, proof2, values[1].recipient, ethers.utils.parseEther('5'), ethers.utils.parseEther('15')]
     );
     expect(consoleLogSpy).toHaveBeenCalledWith('Number of calldatas to be sent: ', multicallCalldata.length);
-
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(multicallCalldata);
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
@@ -104,8 +139,9 @@ describe('fundChainRecipients', () => {
       `Calldata #${2} reverted with message:`,
       decodeRevertString(returndata[1])
     );
-
-    expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata);
+    expect(getGasPriceMock).toHaveBeenCalledTimes(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
+    expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.tryMulticall:`,
       expect.any(String)
@@ -170,9 +206,27 @@ describe('fundChainRecipients', () => {
         tryMulticall: mockContractCallStaticTryMulticall,
       },
       tryMulticall: mockContractTryMulticall,
+      provider: new ethers.providers.JsonRpcProvider('http://localhost:8545'),
     };
 
-    const chainMerkleFunderDepositories: MerkleFunderDepositories = [
+    const options: ChainOptions = {
+      gasPriceOracle: [
+        {
+          gasPriceStrategy: 'providerRecommendedGasPrice',
+          recommendedGasPriceMultiplier: 1.2,
+        },
+        {
+          gasPriceStrategy: 'constantGasPrice',
+          gasPrice: {
+            value: 10,
+            unit: 'gwei',
+          },
+        },
+      ],
+      fulfillmentGasLimit: 200000,
+    };
+
+    const merkleFunderDepositories: MerkleFunderDepositories = [
       {
         owner,
         values,
@@ -182,7 +236,7 @@ describe('fundChainRecipients', () => {
     // Capture console.log outputs
     const consoleLogSpy = jest.spyOn(console, 'log');
 
-    await fundChainRecipients(chainMerkleFunderDepositories, mockContract as unknown as ethers.Contract);
+    await fundChainRecipients({ options, merkleFunderDepositories }, mockContract as unknown as ethers.Contract);
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
@@ -198,7 +252,9 @@ describe('fundChainRecipients', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith('Number of calldatas to be sent: ', multicallCalldata.length);
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(multicallCalldata);
     expect(consoleLogSpy).toHaveBeenCalledWith(`Calldata #${1} reverted with message:`, 'mocked-revert-string');
-    expect(mockContractTryMulticall).toHaveBeenCalledWith([multicallCalldata[1]]);
+    expect(getGasPriceMock).toHaveBeenCalledTimes(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
+    expect(mockContractTryMulticall).toHaveBeenCalledWith([multicallCalldata[1]], expect.anything());
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.tryMulticall:`,
       expect.any(String)
@@ -247,9 +303,27 @@ describe('fundChainRecipients', () => {
         tryMulticall: mockContractCallStaticTryMulticall,
       },
       tryMulticall: mockContractTryMulticall,
+      provider: new ethers.providers.JsonRpcProvider('http://localhost:8545'),
     };
 
-    const chainMerkleFunderDepositories: MerkleFunderDepositories = [
+    const options: ChainOptions = {
+      gasPriceOracle: [
+        {
+          gasPriceStrategy: 'providerRecommendedGasPrice',
+          recommendedGasPriceMultiplier: 1.2,
+        },
+        {
+          gasPriceStrategy: 'constantGasPrice',
+          gasPrice: {
+            value: 10,
+            unit: 'gwei',
+          },
+        },
+      ],
+      fulfillmentGasLimit: 200000,
+    };
+
+    const merkleFunderDepositories: MerkleFunderDepositories = [
       {
         owner,
         values,
@@ -259,7 +333,7 @@ describe('fundChainRecipients', () => {
     // Capture console.log outputs
     const consoleLogSpy = jest.spyOn(console, 'log');
 
-    await fundChainRecipients(chainMerkleFunderDepositories, mockContract as unknown as ethers.Contract);
+    await fundChainRecipients({ options, merkleFunderDepositories }, mockContract as unknown as ethers.Contract);
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
@@ -270,6 +344,13 @@ describe('fundChainRecipients', () => {
     );
     expect(consoleLogSpy).toHaveBeenCalledWith('Number of calldatas to be sent: ', multicallCalldata.length);
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(multicallCalldata);
+    expect(consoleLogSpy).not.toHaveBeenCalledWith(
+      `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
+      expect.any(String)
+    );
+    expect(getGasPriceMock).toHaveBeenCalledTimes(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
+    expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());
     expect(consoleLogSpy).toHaveBeenCalledWith(
       'Failed to call merkleFunderContract.tryMulticall:',
       'mocked-error-message'

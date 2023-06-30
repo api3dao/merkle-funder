@@ -2,11 +2,11 @@ import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
-import { ChainConfig, fundChainRecipients, loadConfig } from './';
+import { fundChainRecipients, loadConfig } from './';
 
-const getMerkleFunderContract = (chainConfig: ChainConfig, rootPath: string, chainId: string) => {
+const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, chainId: string) => {
   // Find the chain name where the chainId matches the .chainId file on /deployments folder
-  const deploymentsPath = path.join(rootPath, 'deployments');
+  const deploymentsPath = path.join(__dirname, '../', 'deployments');
   if (!fs.existsSync(deploymentsPath)) {
     throw new Error(`Directory does not exist: ${deploymentsPath}`);
   }
@@ -23,8 +23,8 @@ const getMerkleFunderContract = (chainConfig: ChainConfig, rootPath: string, cha
   );
 
   // Connect to the network and get the signer
-  const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
-  const signer = ethers.Wallet.fromMnemonic(chainConfig.mnemonic).connect(provider);
+  const provider = new ethers.providers.JsonRpcProvider(providerUrl);
+  const signer = ethers.Wallet.fromMnemonic(funderMnemonic).connect(provider);
 
   // Return the merkleFunder contract
   return new ethers.Contract(merkleFunderDeployment.address, merkleFunderDeployment.abi, signer);
@@ -34,18 +34,22 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   const startedAt = new Date();
   const config = loadConfig();
 
-  // TODO: replace with Promise.all? In the logs I see that handler finishes before printing all messages
-  try {
-    await Promise.all(
-      Object.entries(config).map(async ([chainId, chainConfig]) => {
-        const merkleFunderContract = getMerkleFunderContract(chainConfig, path.join(__dirname, '../'), chainId);
-        await fundChainRecipients(chainConfig.merkleFunderDepositories, merkleFunderContract);
+  const chainFundingResults = await Promise.allSettled(
+    Object.entries(config).map(([chainId, { providers, funderMnemonic, ...chainConfig }]) =>
+      Object.entries(providers).map(async ([providerName, provider]) => {
+        console.log(`Funding recipients on chain with ID: ${chainId} using provider: ${providerName}`);
+
+        const merkleFunderContract = getMerkleFunderContract(funderMnemonic, provider.url, chainId);
+        await fundChainRecipients(chainConfig, merkleFunderContract);
       })
-    );
-  } catch (err) {
-    const error = err as Error;
-    console.error(error.message);
-  }
+    )
+  );
+
+  chainFundingResults.forEach((result) => {
+    if (result.status === 'rejected') {
+      console.log(result.reason);
+    }
+  });
 
   const endedAt = new Date();
   console.log(`Scheduled task finished running. Run delta: ${(endedAt.getTime() - startedAt.getTime()) / 1000} s`);
