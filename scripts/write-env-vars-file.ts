@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
-import * as yaml from 'js-yaml';
 
 dotenv.config();
 
@@ -17,7 +16,12 @@ for (const key in envVars) {
 }
 
 // Convert formattedEnvVars to YAML format
-const yamlEnvVars = yaml.dump(formattedEnvVars);
+let yamlEnvVars = '';
+for (const key in formattedEnvVars) {
+  if (Object.prototype.hasOwnProperty.call(formattedEnvVars, key)) {
+    yamlEnvVars += `${key}: ${formattedEnvVars[key]}\n`;
+  }
+}
 
 // Write YAML to env-vars.yml file
 fs.writeFileSync('env-vars.yml', yamlEnvVars);
