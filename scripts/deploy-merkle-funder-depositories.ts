@@ -32,7 +32,6 @@ async function main() {
     return;
   }
 
-  let nonce: number | null = null;
   for (const { owner, values } of chainMerkleFunderDepositories) {
     // Build merkle tree
     const tree = buildMerkleTree(values);
@@ -46,9 +45,7 @@ async function main() {
     );
 
     if ((await hre.ethers.provider.getCode(merkleFunderDepositoryAddress)) === '0x') {
-      nonce = nonce ?? (await merkleFunder.signer.getTransactionCount());
       await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
-      nonce++;
       console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
     } else {
       console.log('MerkleFunderDepository is already deployed at', merkleFunderDepositoryAddress);
@@ -78,7 +75,6 @@ async function main() {
     const targetBalance = hre.ethers.utils.parseUnits('100', 'ether');
 
     if (balance.lt(targetBalance)) {
-      nonce = nonce ?? (await merkleFunder.signer.getTransactionCount());
       const sendTransactionResult = await go(
         () =>
           deployer.sendTransaction({
@@ -91,7 +87,6 @@ async function main() {
         console.log('Failed to send funds to MerkleFunderDepository:', sendTransactionResult.error.message);
         return;
       }
-      nonce++;
       console.log(`Topped the MerkleFunderDepository at ${merkleFunderDepositoryAddress} up to 100 ETH`);
     }
   }
