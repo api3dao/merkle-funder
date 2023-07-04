@@ -101,6 +101,7 @@ yarn sls:remove --stage <stageName>
   ```shell
   yarn deploy:merkle-funder localhost
   yarn deploy:merkle-funder-depositories localhost
+  yarn fund:merkle-funder-depositories localhost
   yarn fund localhost
   ```
 

@@ -9,6 +9,7 @@
     "deploy:watch": "hardhat deploy --watch --network",
     "env-example:write": "ts-node scripts/write-env-example-file.ts",
     "env-vars:write": "ts-node scripts/write-env-vars-file.ts",
+    "fund:merkle-funder-depositories": "hardhat run ./scripts/fund-merkle-funder-depositories.ts --network",
     "fund": "hardhat run ./scripts/fund.ts --network",
     "hh:node": "hardhat node",
     "hh:deploy": "hardhat deploy",

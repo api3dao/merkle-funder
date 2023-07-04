@@ -1,4 +1,4 @@
-import { go, goSync } from '@api3/promise-utils';
+import { goSync } from '@api3/promise-utils';
 import * as hre from 'hardhat';
 import { computeMerkleFunderDepositoryAddress } from '../src';
 import loadConfig from '../src/config';
@@ -49,45 +49,6 @@ async function main() {
       console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
     } else {
       console.log('MerkleFunderDepository is already deployed at', merkleFunderDepositoryAddress);
-    }
-
-    // Get MerkleFunderDepository balance
-    const getBalanceResult = await go(() => hre.ethers.provider.getBalance(merkleFunderDepositoryAddress), {
-      totalTimeoutMs: 10_000,
-      retries: 1,
-      attemptTimeoutMs: 4_900,
-    });
-    if (!getBalanceResult.success) {
-      console.log('Failed to get MerkleFunderDepository balance:', getBalanceResult.error.message);
-      return;
-    }
-
-    // If balance is lower than target balance then send funds
-    const balance = getBalanceResult.data || hre.ethers.constants.Zero;
-    console.log('MerkleFunderDepository current balance:', hre.ethers.utils.formatEther(balance));
-
-    // TODO: For now, funding MerkleFunderDepository is only available on localhost
-    if (chainName.toLowerCase() !== 'localhost') {
-      continue;
-    }
-
-    // TODO: this target seems chain dependant and should not be hardcoded here
-    const targetBalance = hre.ethers.utils.parseUnits('100', 'ether');
-
-    if (balance.lt(targetBalance)) {
-      const sendTransactionResult = await go(
-        () =>
-          deployer.sendTransaction({
-            to: merkleFunderDepositoryAddress,
-            value: targetBalance.sub(balance),
-          }),
-        { totalTimeoutMs: 5_000 }
-      );
-      if (!sendTransactionResult.success) {
-        console.log('Failed to send funds to MerkleFunderDepository:', sendTransactionResult.error.message);
-        return;
-      }
-      console.log(`Topped the MerkleFunderDepository at ${merkleFunderDepositoryAddress} up to 100 ETH`);
     }
   }
 }
