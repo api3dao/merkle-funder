@@ -86,6 +86,9 @@ async function main() {
         return;
       }
       console.log(`Topped the MerkleFunderDepository at ${merkleFunderDepositoryAddress} up to 100 ETH`);
+      const receipt = await sendTransactionResult.data.wait();
+      console.log('Transaction hash:', receipt.transactionHash);
+      console.log('Gas used:', hre.ethers.utils.formatUnits(receipt.gasUsed, 'gwei'));
     }
   }
 }

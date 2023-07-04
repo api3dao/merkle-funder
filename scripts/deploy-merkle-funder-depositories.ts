@@ -45,8 +45,11 @@ async function main() {
     );
 
     if ((await hre.ethers.provider.getCode(merkleFunderDepositoryAddress)) === '0x') {
-      await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
+      const tx = await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
       console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
+      const receipt = await tx.wait();
+      console.log('Transaction hash:', receipt.transactionHash);
+      console.log('Gas used:', hre.ethers.utils.formatUnits(receipt.gasUsed, 'gwei'));
     } else {
       console.log('MerkleFunderDepository is already deployed at', merkleFunderDepositoryAddress);
     }
