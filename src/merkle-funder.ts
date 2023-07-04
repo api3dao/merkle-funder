@@ -13,6 +13,8 @@ export const fundChainRecipients = async (
     const tree = buildMerkleTree(values);
     console.log('Merkle tree:\n', tree.render());
 
+    const getBlockNumberCalldata = merkleFunderContract.interface.encodeFunctionData('getBlockNumber()');
+
     const multicallCalldata = values.map(({ recipient, lowThreshold, highThreshold }, treeValueIndex) =>
       merkleFunderContract.interface.encodeFunctionData('fund(address,bytes32,bytes32[],address,uint256,uint256)', [
         owner,
@@ -23,9 +25,11 @@ export const fundChainRecipients = async (
         ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
       ])
     );
-    console.log('Number of calldatas to be sent: ', multicallCalldata.length);
+    console.log('Expected number of calldatas to be sent: ', multicallCalldata.length);
 
-    const tryStaticMulticallResult = await go(() => merkleFunderContract.callStatic.tryMulticall(multicallCalldata));
+    const tryStaticMulticallResult = await go(() =>
+      merkleFunderContract.callStatic.tryMulticall([getBlockNumberCalldata, ...multicallCalldata])
+    );
     if (!tryStaticMulticallResult.success) {
       console.log(
         'Failed to call merkleFunderContract.callStatic.tryMulticall:',
@@ -34,11 +38,23 @@ export const fundChainRecipients = async (
       continue;
     }
 
+    const {
+      successes: [getBlockNumberSuccess, ...remainingSuccesses],
+      returndata: [getBlockNumberReturndata, ...remainingRetunrdata],
+    } = tryStaticMulticallResult.data;
+
+    // Get block number to use as argument when fetching the transaction count
+    if (!getBlockNumberSuccess) {
+      console.log('Failded to fetch block number:', decodeRevertString(getBlockNumberReturndata));
+      continue;
+    }
+    const blockNumber = ethers.BigNumber.from(getBlockNumberReturndata);
+    console.log('Block number:', blockNumber.toString());
+
     // Filter out calldata that failed to be sent
-    const { successes, returndata } = tryStaticMulticallResult.data;
-    const successfulMulticallCalldata = (successes as boolean[]).reduce((acc, success, index) => {
+    const successfulMulticallCalldata = (remainingSuccesses as boolean[]).reduce((acc, success, index) => {
       if (!success) {
-        console.log(`Calldata #${index + 1} reverted with message:`, decodeRevertString(returndata[index]));
+        console.log(`Calldata #${index + 1} reverted with message:`, decodeRevertString(remainingRetunrdata[index]));
         return acc;
       }
       return [...acc, multicallCalldata[index]];
@@ -46,8 +62,10 @@ export const fundChainRecipients = async (
 
     // Try to send the calldatas
     // TODO: A potential improvement here is to batch these calls
+    console.log('Actual number of calldatas to be sent: ', successfulMulticallCalldata.length);
     if (successfulMulticallCalldata.length > 0) {
-      nonce = nonce ?? (await merkleFunderContract.signer.getTransactionCount());
+      nonce = nonce ?? (await merkleFunderContract.signer.getTransactionCount(blockNumber.toNumber()));
+      console.log('Nonce:', nonce);
 
       // Get the latest gas price
       const [logs, gasTarget] = await getGasPrice(merkleFunderContract.provider, chainConfig.options);
@@ -65,8 +83,6 @@ export const fundChainRecipients = async (
         `Sent tx with hash ${tryMulticallResult.data.hash} that will send funds to ${successfulMulticallCalldata.length} recipients`
       );
       nonce++;
-    } else {
-      console.log('No tx was sent. All recipients are already funded');
     }
   }
 };

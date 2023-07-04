@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@api3/airnode-protocol-v1/contracts/utils/SelfMulticall.sol";
+import "@api3/airnode-protocol-v1/contracts/utils/ExtendedSelfMulticall.sol";
 import "./interfaces/IMerkleFunder.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
@@ -21,7 +21,7 @@ import "./MerkleFunderDepository.sol";
 /// longer needs to be trusted with the funds, and multiple bots with different
 /// hot wallets can be run against the same MerkleFunderDepository deployment
 /// for redundancy.
-contract MerkleFunder is SelfMulticall, IMerkleFunder {
+contract MerkleFunder is ExtendedSelfMulticall, IMerkleFunder {
     /// @notice Returns the address of the MerkleFunderDepository deployed for
     /// the owner address and the Merkle tree root, and zero-address if such a
     /// MerkleFunderDepository is not deployed yet
