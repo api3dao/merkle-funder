@@ -3,6 +3,7 @@ import * as hre from 'hardhat';
 import { computeMerkleFunderDepositoryAddress } from '../src';
 import loadConfig from '../src/config';
 import buildMerkleTree from '../src/merkle-tree';
+import * as readline from 'readline';
 
 async function main() {
   const chainName = hre.network.name;
@@ -26,6 +27,11 @@ async function main() {
     return;
   }
 
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
   const chainMerkleFunderDepositories = loadConfigResult.data[chainId].merkleFunderDepositories;
   if (!chainMerkleFunderDepositories) {
     console.log('No merkleFunderDepositories for chain: ', chainName, chainId);
@@ -45,11 +51,24 @@ async function main() {
     );
 
     if ((await hre.ethers.provider.getCode(merkleFunderDepositoryAddress)) === '0x') {
-      const tx = await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
-      console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
-      const receipt = await tx.wait();
-      console.log('Transaction hash:', receipt.transactionHash);
-      console.log('Gas used:', hre.ethers.utils.formatUnits(receipt.gasUsed, 'gwei'));
+      const answer = await new Promise<string>((resolve) => {
+        rl.question(
+          'Your config specifies a MerkleFunderDepository that is not deployed yet. Continue? (y/n) [y]: ',
+          (input) => {
+            resolve(input.trim().toLowerCase() || 'y');
+          }
+        );
+      });
+
+      if (answer === 'y') {
+        const tx = await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
+        console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
+        const receipt = await tx.wait();
+        console.log('Transaction hash:', receipt.transactionHash);
+        console.log('Gas used:', hre.ethers.utils.formatUnits(receipt.gasUsed, 'gwei'));
+      } else {
+        console.log('Deployment aborted by the user');
+      }
     } else {
       console.log('MerkleFunderDepository is already deployed at', merkleFunderDepositoryAddress);
     }
