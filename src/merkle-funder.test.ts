@@ -49,9 +49,10 @@ describe('fundChainRecipients', () => {
     const treeRoot = '0xmerkleroot';
     const proof1 = ['0xproof1'];
     const proof2 = ['0xproof2'];
-    const multicallCalldata = ['0xcalldata1', '0xcalldata2'];
-    const successes = [true, true];
+    const staticMulticallCalldata = ['0xgetBlockNumberCalldata', '0xcalldata1', '0xcalldata2'];
+    const successes = [true, true, true];
     const returndata = [
+      ethers.utils.hexlify(10),
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes('')),
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes('')),
     ];
@@ -67,12 +68,15 @@ describe('fundChainRecipients', () => {
 
     const encodeFunctionDataMock = jest
       .fn()
-      .mockReturnValueOnce(multicallCalldata[0])
-      .mockReturnValueOnce(multicallCalldata[1]);
+      .mockReturnValueOnce(staticMulticallCalldata[0])
+      .mockReturnValueOnce(staticMulticallCalldata[1])
+      .mockReturnValueOnce(staticMulticallCalldata[2]);
 
     const mockContractCallStaticTryMulticall = jest.fn().mockResolvedValueOnce({ successes, returndata });
 
     const mockContractTryMulticall = jest.fn().mockResolvedValueOnce(tryMulticallResult);
+
+    const mockGetTransactionCount = jest.fn().mockImplementation(() => Promise.resolve(1));
 
     const mockContract = {
       interface: {
@@ -82,7 +86,7 @@ describe('fundChainRecipients', () => {
         tryMulticall: mockContractCallStaticTryMulticall,
       },
       tryMulticall: mockContractTryMulticall,
-      provider: new ethers.providers.JsonRpcProvider('http://localhost:8545'),
+      signer: { getTransactionCount: mockGetTransactionCount },
     };
 
     const options: ChainOptions = {
@@ -117,6 +121,7 @@ describe('fundChainRecipients', () => {
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
     expect(consoleLogSpy).toHaveBeenCalledWith('Merkle tree:\n', 'mocked-merkle-tree-render');
+    expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith('getBlockNumber()');
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith(
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof1, values[0].recipient, ethers.utils.parseEther('10'), ethers.utils.parseEther('20')]
@@ -125,20 +130,24 @@ describe('fundChainRecipients', () => {
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof2, values[1].recipient, ethers.utils.parseEther('5'), ethers.utils.parseEther('15')]
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith('Number of calldatas to be sent: ', multicallCalldata.length);
-    expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(multicallCalldata);
+    const [, ...multicallCalldata] = staticMulticallCalldata;
+    expect(consoleLogSpy).toHaveBeenCalledWith('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
       expect.any(String)
     );
+    expect(consoleLogSpy).toHaveBeenCalledWith('Block number:', '10');
+    expect(consoleLogSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String));
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Calldata #${1} reverted with message:`,
-      decodeRevertString(returndata[0])
+      decodeRevertString(returndata[1])
     );
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Calldata #${2} reverted with message:`,
-      decodeRevertString(returndata[1])
+      decodeRevertString(returndata[2])
     );
+    expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
     expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());
@@ -147,7 +156,7 @@ describe('fundChainRecipients', () => {
       expect.any(String)
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(
-      `Sent tx with hash ${tryMulticallResult.hash} that will send funds to ${successes.length} recipients`
+      `Sent tx with hash ${tryMulticallResult.hash} that will send funds to ${multicallCalldata.length} recipients`
     );
     expect(consoleLogSpy).not.toHaveBeenCalledWith('All recipients are already funded');
   });
@@ -169,10 +178,11 @@ describe('fundChainRecipients', () => {
     const treeRoot = '0xmerkleroot';
     const proof1 = ['0xproof1'];
     const proof2 = ['0xproof2'];
-    const multicallCalldata = ['0xcalldata1', '0xcalldata2'];
-    const successes = [false, true];
+    const staticMulticallCalldata = ['0xgetBlockNumberCalldata', '0xcalldata1', '0xcalldata2'];
+    const successes = [true, false, true];
     const functionSelector = '0x08c379a0';
     const returndata = [
+      ethers.utils.hexlify(10),
       functionSelector.concat(ethers.utils.defaultAbiCoder.encode(['string'], ['mocked-revert-string']).substring(2)),
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes('')),
     ];
@@ -188,8 +198,9 @@ describe('fundChainRecipients', () => {
 
     const encodeFunctionDataMock = jest
       .fn()
-      .mockReturnValueOnce(multicallCalldata[0])
-      .mockReturnValueOnce(multicallCalldata[1]);
+      .mockReturnValueOnce(staticMulticallCalldata[0])
+      .mockReturnValueOnce(staticMulticallCalldata[1])
+      .mockReturnValueOnce(staticMulticallCalldata[2]);
 
     const mockContractCallStaticTryMulticall = jest.fn().mockResolvedValueOnce({
       successes,
@@ -197,6 +208,8 @@ describe('fundChainRecipients', () => {
     });
 
     const mockContractTryMulticall = jest.fn().mockResolvedValueOnce(tryMulticallResult);
+
+    const mockGetTransactionCount = jest.fn().mockImplementation(() => Promise.resolve(1));
 
     const mockContract = {
       interface: {
@@ -206,7 +219,7 @@ describe('fundChainRecipients', () => {
         tryMulticall: mockContractCallStaticTryMulticall,
       },
       tryMulticall: mockContractTryMulticall,
-      provider: new ethers.providers.JsonRpcProvider('http://localhost:8545'),
+      signer: { getTransactionCount: mockGetTransactionCount },
     };
 
     const options: ChainOptions = {
@@ -241,6 +254,7 @@ describe('fundChainRecipients', () => {
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
     expect(consoleLogSpy).toHaveBeenCalledWith('Merkle tree:\n', 'mocked-merkle-tree-render');
+    expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith('getBlockNumber()');
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith(
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof1, values[0].recipient, ethers.utils.parseEther('10'), ethers.utils.parseEther('20')]
@@ -249,12 +263,16 @@ describe('fundChainRecipients', () => {
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof2, values[1].recipient, ethers.utils.parseEther('5'), ethers.utils.parseEther('15')]
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith('Number of calldatas to be sent: ', multicallCalldata.length);
-    expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(multicallCalldata);
+    const [, ...multicallCalldata] = staticMulticallCalldata;
+    expect(consoleLogSpy).toHaveBeenCalledWith('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
+    expect(consoleLogSpy).toHaveBeenCalledWith('Block number:', '10');
+    expect(consoleLogSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String));
     expect(consoleLogSpy).toHaveBeenCalledWith(`Calldata #${1} reverted with message:`, 'mocked-revert-string');
+    expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
-    expect(mockContractTryMulticall).toHaveBeenCalledWith([multicallCalldata[1]], expect.anything());
+    expect(mockContractTryMulticall).toHaveBeenCalledWith([staticMulticallCalldata[2]], expect.anything());
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.tryMulticall:`,
       expect.any(String)
@@ -276,9 +294,9 @@ describe('fundChainRecipients', () => {
     ];
     const treeRoot = '0xmerkleroot';
     const proof1 = ['0xproof1'];
-    const multicallCalldata = ['0xcalldata1'];
-    const successes = [true];
-    const returndata = [ethers.utils.hexlify(ethers.utils.toUtf8Bytes(''))];
+    const staticMulticallCalldata = ['0xgetBlockNumberCalldata', '0xcalldata'];
+    const successes = [true, true];
+    const returndata = [ethers.utils.hexlify(10), ethers.utils.hexlify(ethers.utils.toUtf8Bytes(''))];
 
     (buildMerkleTree as jest.Mock).mockReturnValueOnce({
       root: treeRoot,
@@ -286,7 +304,10 @@ describe('fundChainRecipients', () => {
       render: jest.fn().mockReturnValue('mocked-merkle-tree-render'),
     });
 
-    const encodeFunctionDataMock = jest.fn().mockReturnValueOnce(multicallCalldata[0]);
+    const encodeFunctionDataMock = jest
+      .fn()
+      .mockReturnValueOnce(staticMulticallCalldata[0])
+      .mockReturnValueOnce(staticMulticallCalldata[1]);
 
     const mockContractCallStaticTryMulticall = jest.fn().mockResolvedValueOnce({
       successes,
@@ -294,6 +315,8 @@ describe('fundChainRecipients', () => {
     });
 
     const mockContractTryMulticall = jest.fn().mockRejectedValue('mocked-error-message');
+
+    const mockGetTransactionCount = jest.fn().mockImplementation(() => Promise.resolve(1));
 
     const mockContract = {
       interface: {
@@ -303,7 +326,7 @@ describe('fundChainRecipients', () => {
         tryMulticall: mockContractCallStaticTryMulticall,
       },
       tryMulticall: mockContractTryMulticall,
-      provider: new ethers.providers.JsonRpcProvider('http://localhost:8545'),
+      signer: { getTransactionCount: mockGetTransactionCount },
     };
 
     const options: ChainOptions = {
@@ -342,12 +365,14 @@ describe('fundChainRecipients', () => {
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof1, values[0].recipient, ethers.utils.parseEther('10'), ethers.utils.parseEther('20')]
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith('Number of calldatas to be sent: ', multicallCalldata.length);
-    expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(multicallCalldata);
+    const [, ...multicallCalldata] = staticMulticallCalldata;
+    expect(consoleLogSpy).toHaveBeenCalledWith('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
       expect.any(String)
     );
+    expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
     expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());

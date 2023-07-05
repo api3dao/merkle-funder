@@ -2,7 +2,8 @@ import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
-import { fundChainRecipients, loadConfig } from './';
+import loadConfig from './config';
+import { fundChainRecipients } from './merkle-funder';
 
 const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, chainId: string) => {
   // Find the chain name where the chainId matches the .chainId file on /deployments folder

@@ -1,8 +1,9 @@
-import { go, goSync } from '@api3/promise-utils';
+import { goSync } from '@api3/promise-utils';
 import * as hre from 'hardhat';
 import { computeMerkleFunderDepositoryAddress } from '../src';
 import loadConfig from '../src/config';
 import buildMerkleTree from '../src/merkle-tree';
+import * as readline from 'readline';
 
 async function main() {
   const chainName = hre.network.name;
@@ -26,68 +27,52 @@ async function main() {
     return;
   }
 
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
   const chainMerkleFunderDepositories = loadConfigResult.data[chainId].merkleFunderDepositories;
   if (!chainMerkleFunderDepositories) {
     console.log('No merkleFunderDepositories for chain: ', chainName, chainId);
     return;
   }
 
-  await Promise.all(
-    chainMerkleFunderDepositories.map(async ({ owner, values }) => {
-      // Build merkle tree
-      const tree = buildMerkleTree(values);
-      console.log('Merkle tree:\n', tree.render());
+  for (const { owner, values } of chainMerkleFunderDepositories) {
+    // Build merkle tree
+    const tree = buildMerkleTree(values);
+    console.log('Merkle tree:\n', tree.render());
 
-      // Compute MerkleFunderFepository address and check if it is already deployed
-      const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
-        merkleFunder.address,
-        owner,
-        tree.root
-      );
+    // Compute MerkleFunderFepository address and check if it is already deployed
+    const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
+      merkleFunder.address,
+      owner,
+      tree.root
+    );
 
-      if ((await hre.ethers.provider.getCode(merkleFunderDepositoryAddress)) === '0x') {
-        await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
-        console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
-      } else {
-        console.log('MerkleFunderDepository is already deployed at', merkleFunderDepositoryAddress);
-      }
-
-      // Get MerkleFunderDepository balance
-      const getBalanceResult = await go(() => hre.ethers.provider.getBalance(merkleFunderDepositoryAddress), {
-        totalTimeoutMs: 10_000,
-        retries: 1,
-        attemptTimeoutMs: 4_900,
-      });
-      if (!getBalanceResult.success) {
-        console.log('Failed to get MerkleFunderDepository balance:', getBalanceResult.error.message);
-        return;
-      }
-
-      // If balance is lower than target balance then send funds
-      const balance = getBalanceResult.data || hre.ethers.constants.Zero;
-      console.log('MerkleFunderDepository current balance:', hre.ethers.utils.formatEther(balance));
-
-      // TODO: this target seems chain dependant and should not be hardcoded here
-      const targetBalance = hre.ethers.utils.parseUnits('100', 'ether');
-
-      if (balance.lt(targetBalance)) {
-        const sendTransactionResult = await go(
-          () =>
-            deployer.sendTransaction({
-              to: merkleFunderDepositoryAddress,
-              value: targetBalance.sub(balance),
-            }),
-          { totalTimeoutMs: 5_000 }
+    if ((await hre.ethers.provider.getCode(merkleFunderDepositoryAddress)) === '0x') {
+      const answer = await new Promise<string>((resolve) => {
+        rl.question(
+          'Your config specifies a MerkleFunderDepository that is not deployed yet. Continue? (y/n) [y]: ',
+          (input) => {
+            resolve(input.trim().toLowerCase() || 'y');
+          }
         );
-        if (!sendTransactionResult.success) {
-          console.log('Failed to send funds to MerkleFunderDepository:', sendTransactionResult.error.message);
-          return;
-        }
+      });
 
-        console.log(`Topped the MerkleFunderDepository at ${merkleFunderDepositoryAddress} up to 100 ETH`);
+      if (answer === 'y') {
+        const tx = await merkleFunder.deployMerkleFunderDepository(owner, tree.root);
+        console.log('MerkleFunderDepository is deployed at', merkleFunderDepositoryAddress);
+        const receipt = await tx.wait();
+        console.log('Transaction hash:', receipt.transactionHash);
+        console.log('Gas used:', hre.ethers.utils.formatUnits(receipt.gasUsed, 'gwei'));
+      } else {
+        console.log('Deployment aborted by the user');
       }
-    })
-  );
+    } else {
+      console.log('MerkleFunderDepository is already deployed at', merkleFunderDepositoryAddress);
+    }
+  }
 }
 
 main()
