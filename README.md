@@ -29,7 +29,13 @@ yarn build
 
 ### Deploy contracts
 
-1. Copy [.env.example](./env.example) to `.env` and add new entries to this file with the RPC provider URL and set the mnemonic of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
+1. Run the following script to generate the [.env.example](./env.example) file:
+
+   ```shell
+   yarn env-example:write
+   ```
+
+1. Copy [.env.example](./env.example) to `.env` and add the RPC provider URLs and set the mnemonic of the account that will be used to deploy `MerkleFunder` contract and later send transactions with
 1. Copy [config.example.json](./config/config.example.json) to `config.json` and add a new entry using the chain ID as key for the object
    <!-- TODO: add more details about each field in the config -->
 1. Add a new entry to [hardhat.config.ts](./hardhat.config.ts) `networks` object
@@ -64,8 +70,12 @@ This command will trigger funds to be sent to recipients defined in `config.json
 Another way to trigger funds to be sent from a `MerkleFunderDepository` to a recipient address is to run the scheduled lambda function on a 1 minute interval
 
 1. Configure your AWS credentials
-1. Add a new entries for the environment variables mapping in [env-vars.yml](./env-vars.yml)
-1. Add the env vars to the .env file
+1. Run the following script to generate the env var mapping file called [env-vars.yml](./env-vars.yml) that is referenced in serverless.yml:
+
+   ```shell
+   yarn env-vars:write
+   ```
+
 1. Deploy the function by running:
 
    ```shell
