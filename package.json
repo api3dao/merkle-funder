@@ -4,8 +4,8 @@
   "license": "MIT",
   "scripts": {
     "build": "hardhat compile",
-    "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network",
-    "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network",
+    "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
+    "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat deploy --watch --network",
     "env-example:write": "ts-node scripts/write-env-example-file.ts",
     "env-vars:write": "ts-node scripts/write-env-vars-file.ts",
