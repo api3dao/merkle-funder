@@ -1,0 +1,10 @@
+{
+  "chainNames": {
+    "5": "ethereum-goerli-testnet",
+    "11155111": "ethereum-sepolia-testnet"
+  },
+  "MerkleFunder": {
+    "5": 9300701,
+    "11155111": 3837371
+  }
+}
