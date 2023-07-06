@@ -6,6 +6,12 @@ dotenv.config();
 // Read the .env file
 const envVars = dotenv.parse(fs.readFileSync('.env'));
 
+Object.keys(envVars).map((envVarName) => {
+  if (envVarName.startsWith('ETHERSCAN_API_KEY')) {
+    delete envVars[envVarName];
+  }
+});
+
 // Format the values
 const formattedEnvVars: { [key: string]: string } = {};
 
