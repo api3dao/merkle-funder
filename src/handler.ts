@@ -13,7 +13,6 @@ const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, ch
   }
   const chainDeployment = fs
     .readdirSync(deploymentsPath, { withFileTypes: true })
-    .filter((item) => item.isDirectory())
     .find((item) => fs.readFileSync(path.join(deploymentsPath, item.name, '.chainId'), 'utf-8') === chainId);
   if (!chainDeployment) {
     throw new Error(`No deployment found for chainId: ${chainId}`);
@@ -37,7 +36,7 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   const config = loadConfig();
 
   const chainFundingResults = await Promise.allSettled(
-    Object.entries(config).map(([chainId, { providers, funderMnemonic, ...chainConfig }]) =>
+    Object.entries(config).flatMap(([chainId, { providers, funderMnemonic, ...chainConfig }]) =>
       Object.entries(providers).map(async ([providerName, provider]) => {
         console.log(`Funding recipients on chain with ID: ${chainId} using provider: ${providerName}`);
 
