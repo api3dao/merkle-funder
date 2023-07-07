@@ -41,10 +41,10 @@
     yargs "^17.7.2"
     zod "^3.21.4"
 
-"@api3/chains@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@api3/chains/-/chains-2.1.0.tgz#67219e94e3301378a14ba81d50d4740e093d5678"
-  integrity sha512-u/YIE6aXsoHssSc1kir0Ws/12oYEIFPIMm5yDxC6TxL0upglasmYx0vrty40QVaksgsavva/CQNme+zwdJy4yA==
+"@api3/chains@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@api3/chains/-/chains-3.0.1.tgz#89d6e96357cf6c4492036bf29298aba15e56d7e6"
+  integrity sha512-ln0d0RY1iWoieqMZsL/R6GzV5I5LEuedc4/t5oGfJ6vrrAOH6/863X5y+zp99BzoXYd3WKvZoe2DaflwG4gZPQ==
   dependencies:
     zod "^3.21.4"
 
