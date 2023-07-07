@@ -3,7 +3,7 @@
     "funderMnemonic": "${MNEMONIC}",
     "providers": {
       "local": {
-        "url": "${RPC_URL_LOCALHOST}"
+        "url": "${FUNDER_RPC_URL_LOCALHOST}"
       }
     },
     "options": {
