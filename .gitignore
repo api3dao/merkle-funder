@@ -14,7 +14,7 @@ artifacts
 deployments/localhost
 
 # Config files
-config.json
+config.json*
 credentials.json*
 
 # Serverless
