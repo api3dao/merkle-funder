@@ -1,33 +1,23 @@
-import * as dotenv from 'dotenv';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 
 dotenv.config();
 
 // Read the .env file
-const envVars = dotenv.parse(fs.readFileSync('.env'));
+const envVars = dotenv.parse(fs.readFileSync('.env')) as { [key: string]: string };
 
-Object.keys(envVars).map((envVarName) => {
-  if (envVarName.startsWith('ETHERSCAN_API_KEY')) {
-    delete envVars[envVarName];
-  }
-});
-
-// Format the values
-const formattedEnvVars: { [key: string]: string } = {};
-
-for (const key in envVars) {
-  if (Object.prototype.hasOwnProperty.call(envVars, key)) {
-    formattedEnvVars[key] = `\${env:${key}, ""}`;
-  }
-}
+// Filter and format the environment variables
+const formattedEnvVars = Object.keys(envVars)
+  .filter((key) => !key.startsWith('ETHERSCAN_API_KEY'))
+  .reduce((acc, key) => {
+    acc[key] = `\${env:${key}, ""}`;
+    return acc;
+  }, {} as { [key: string]: string });
 
 // Convert formattedEnvVars to YAML format
-let yamlEnvVars = '';
-for (const key in formattedEnvVars) {
-  if (Object.prototype.hasOwnProperty.call(formattedEnvVars, key)) {
-    yamlEnvVars += `${key}: ${formattedEnvVars[key]}\n`;
-  }
-}
+const yamlEnvVars = Object.entries(formattedEnvVars)
+  .map(([key, value]) => `${key}: ${value}`)
+  .join('\n');
 
 // Write YAML to env-vars.yml file
 fs.writeFileSync('env-vars.yml', yamlEnvVars);
