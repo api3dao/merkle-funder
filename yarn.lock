@@ -5944,10 +5944,10 @@ hardhat-prettier@^0.0.1:
     chalk "^4.1.0"
     glob "^7.1.6"
 
-hardhat@2.14.1:
-  version "2.14.1"
-  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.14.1.tgz#4dd252717f4987d8221c4f6fd08233b7f4251fd8"
-  integrity sha512-H3Qp/UKyQGmPDDBSfMoSyH18rRnac90rsb0LNer+sKe6at6rxLe4D5j+M+1icqZQF02iLPjNRwc/PA8OPf757A==
+hardhat@2.16.1:
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.16.1.tgz#fd2288ce44f6846a70ba332b3d8158522447262a"
+  integrity sha512-QpBjGXFhhSYoYBGEHyoau/A63crZOP+i3GbNxzLGkL6IklzT+piN14+wGnINNCg5BLSKisQI/RAySPzaWRcx/g==
   dependencies:
     "@ethersproject/abi" "^5.1.2"
     "@metamask/eth-sig-util" "^4.0.0"
@@ -5988,7 +5988,6 @@ hardhat@2.14.1:
     mnemonist "^0.38.0"
     mocha "^10.0.0"
     p-map "^4.0.0"
-    qs "^6.7.0"
     raw-body "^2.4.1"
     resolve "1.17.0"
     semver "^6.3.0"
@@ -8318,7 +8317,7 @@ pure-rand@^6.0.0:
   resolved "https://registry.yarnpkg.com/pure-rand/-/pure-rand-6.0.2.tgz#a9c2ddcae9b68d736a8163036f088a2781c8b306"
   integrity sha512-6Yg0ekpKICSjPswYOuC5sku/TSWaRYlA0qsXqJgM/d/4pLPHPuTxK7Nbf7jFKzAeedUhR8C7K9Uv63FBsSo8xQ==
 
-qs@^6.4.0, qs@^6.7.0, qs@^6.9.4:
+qs@^6.4.0, qs@^6.9.4:
   version "6.11.2"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.2.tgz#64bea51f12c1f5da1bc01496f48ffcff7c69d7d9"
   integrity sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==
