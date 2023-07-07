@@ -13,6 +13,7 @@ const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, ch
   }
   const chainDeployment = fs
     .readdirSync(deploymentsPath, { withFileTypes: true })
+    .filter((item) => item.isDirectory())
     .find((item) => fs.readFileSync(path.join(deploymentsPath, item.name, '.chainId'), 'utf-8') === chainId);
   if (!chainDeployment) {
     throw new Error(`No deployment found for chainId: ${chainId}`);
