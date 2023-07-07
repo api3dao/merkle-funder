@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "hardhat compile",
+    "build": "hardhat compile --force",
     "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
     "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat deploy --watch --network",
