@@ -363,7 +363,7 @@ describe('run', () => {
     ];
     const signerAddress = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    jest.spyOn(fs, 'readdirSync').mockReturnValue([{ name: 'localhost' }] as Dirent[]);
+    jest.spyOn(fs, 'readdirSync').mockReturnValue([{ name: 'localhost', isDirectory: () => true }] as Dirent[]);
     jest.spyOn(fs, 'readFileSync').mockImplementation((path: PathOrFileDescriptor) => {
       if (path.toString().endsWith('.chainId')) {
         return '31337';

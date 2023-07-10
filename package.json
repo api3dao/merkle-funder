@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "hardhat compile",
+    "build": "yarn clean && hardhat compile --force",
+    "clean": "rimraf .esbuild ./artifacts ./cache ./coverage ./typechain-types",
     "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
     "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat deploy --watch --network",
