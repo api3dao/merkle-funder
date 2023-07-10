@@ -4,7 +4,7 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs18.x
-  environment: ${file(./env-vars.yml)}
+  environment: ${file(env-vars.js)}
 
 plugins:
   - serverless-esbuild
@@ -22,8 +22,6 @@ package:
     - '!./deployments/**/solcInputs'
     - ./deployments/**/.chainId
     - ./config/config.json
-
-useDotenv: true
 
 functions:
   fundHandler:
