@@ -1,10 +1,4 @@
 {
-  "chainNames": {
-    "5": "ethereum-goerli-testnet",
-    "11155111": "ethereum-sepolia-testnet"
-  },
-  "MerkleFunder": {
-    "5": "0xf9107e141E69BB86a95346277806380cf6327A71",
-    "11155111": "0xf9107e141E69BB86a95346277806380cf6327A71"
-  }
+  "chainNames": {},
+  "MerkleFunder": {}
 }
