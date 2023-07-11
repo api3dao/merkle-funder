@@ -10,7 +10,7 @@ import "./interfaces/IMerkleFunderDepository.sol";
 /// MerkleFunder contract. Since the owner address and the Merkle tree root are
 /// immutable, the only way to update these is to deploy a new
 /// MerkleFunderDepository with the desired parameters and have the owner of
-/// the previous MerkleFunderDepository withdraw funds to the new one.
+/// the previous MerkleFunderDepository withdraw the funds to the new one.
 contract MerkleFunderDepository is IMerkleFunderDepository {
     /// @notice Address of the MerkleFunder that deployed this contract
     address public immutable override merkleFunder;

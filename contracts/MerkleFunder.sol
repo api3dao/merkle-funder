@@ -21,6 +21,12 @@ import "./MerkleFunderDepository.sol";
 /// longer needs to be trusted with the funds, and multiple bots with different
 /// hot wallets can be run against the same MerkleFunderDepository deployment
 /// for redundancy.
+/// @dev MerkleFunder inherits SelfMulticall to allow `fund()` to be
+/// multi-called so that multiple fundings can be executed in a single
+/// transaction without depending on an external contract. Furthermore, it
+/// inherits ExtendedSelfMulticall to allow `getBlockNumber()` be multi-called
+/// to avoid race conditions that would have caused the bot implementation to
+/// make redundant transactions that revert.
 contract MerkleFunder is ExtendedSelfMulticall, IMerkleFunder {
     /// @notice Returns the address of the MerkleFunderDepository deployed for
     /// the owner address and the Merkle tree root, and zero-address if such a
@@ -38,7 +44,9 @@ contract MerkleFunder is ExtendedSelfMulticall, IMerkleFunder {
     /// with the owner address and the Merkle tree root
     /// @dev The owner address is allowed to be zero in case the deployer wants
     /// to disallow `withdraw()` from being called for the respective
-    /// MerkleFunderDepository
+    /// MerkleFunderDepository.
+    /// See `fund()` for how the Merkle tree leaves are derived and how the
+    /// comprising parameters are validated.
     /// @param owner Owner address
     /// @param root Merkle tree root
     /// @return merkleFunderDepository MerkleFunderDepository address
