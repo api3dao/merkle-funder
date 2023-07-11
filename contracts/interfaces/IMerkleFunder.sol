@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-interface IMerkleFunder {
+import "@api3/airnode-protocol-v1/contracts/utils/interfaces/IExtendedSelfMulticall.sol";
+
+interface IMerkleFunder is IExtendedSelfMulticall {
     event DeployedMerkleFunderDepository(
         address indexed merkleFunderDepository,
         address owner,
