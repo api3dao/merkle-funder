@@ -4,6 +4,7 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs18.x
+  memorySize: 256
   environment: ${file(env-vars.js)}
 
 plugins:
@@ -26,5 +27,6 @@ package:
 functions:
   fundHandler:
     handler: src/handler.run
+    timeout: 60
     events:
       - schedule: rate(1 minute)
