@@ -1,35 +1,23 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
-import fs from 'fs';
-import path from 'path';
+import * as references from '../deployments/references.json';
+import { MerkleFunder__factory } from '../typechain-types';
 import loadConfig from './config';
 import { fundChainRecipients } from './merkle-funder';
 
 const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, chainId: string) => {
-  // Find the chain name where the chainId matches the .chainId file on /deployments folder
-  const deploymentsPath = path.join(__dirname, '../', 'deployments');
-  if (!fs.existsSync(deploymentsPath)) {
-    throw new Error(`Directory does not exist: ${deploymentsPath}`);
+  // Read MerkleFunder address from deployments/references.json
+  const merkleFunderAddress = (references.MerkleFunder as Record<string, string>)[chainId];
+  if (!merkleFunderAddress) {
+    throw new Error(`No MerkleFunder address found for chain ID: ${chainId}`);
   }
-  const chainDeployment = fs
-    .readdirSync(deploymentsPath, { withFileTypes: true })
-    .filter((item) => item.isDirectory())
-    .find((item) => fs.readFileSync(path.join(deploymentsPath, item.name, '.chainId'), 'utf-8') === chainId);
-  if (!chainDeployment) {
-    throw new Error(`No deployment found for chainId: ${chainId}`);
-  }
-
-  // Read the MerkleFunder.json deployment file
-  const merkleFunderDeployment = JSON.parse(
-    fs.readFileSync(path.join(deploymentsPath, chainDeployment.name, 'MerkleFunder.json'), 'utf-8')
-  );
 
   // Connect to the network and get the signer
   const provider = new ethers.providers.JsonRpcProvider(providerUrl);
   const signer = ethers.Wallet.fromMnemonic(funderMnemonic).connect(provider);
 
   // Return the merkleFunder contract
-  return new ethers.Contract(merkleFunderDeployment.address, merkleFunderDeployment.abi, signer);
+  return new ethers.Contract(merkleFunderAddress, MerkleFunder__factory.abi, signer);
 };
 
 export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Context): Promise<void> => {

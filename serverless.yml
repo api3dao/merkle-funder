@@ -19,9 +19,7 @@ custom:
 
 package:
   patterns:
-    - ./deployments/**
-    - '!./deployments/**/solcInputs'
-    - ./deployments/**/.chainId
+    - ./deployments/references.json
     - ./config/config.json
 
 functions:
