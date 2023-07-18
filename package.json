@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "yarn clean && hardhat compile --force",
-    "clean": "rimraf .esbuild ./artifacts ./cache ./coverage ./typechain-types",
+    "clean": "rimraf .esbuild .serverless artifacts cache coverage typechain-types",
     "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
     "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat deploy --watch --network",
@@ -20,7 +20,7 @@
     "prettier": "prettier --write \"./**/*.{js,ts,md,json,sol}\"",
     "prepare": "husky install",
     "sls:config": "sls config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY",
-    "sls:deploy": "sls deploy --region us-east-1",
+    "sls:deploy": "ts-node scripts/load-config.ts && sls deploy --region us-east-1",
     "sls:remove": "sls remove --region us-east-1",
     "sls:local": "sls offline",
     "sls:invoke:fundHandler": "sls invoke local -f fundHandler",
