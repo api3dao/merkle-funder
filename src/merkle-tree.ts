@@ -8,8 +8,7 @@ function buildMerkleTree(values: Values) {
     ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
     ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
   ]);
-  const tree = StandardMerkleTree.of(treeValues, ['address', 'uint256', 'uint256']);
-  return tree;
+  return StandardMerkleTree.of(treeValues, ['address', 'uint256', 'uint256']);
 }
 
 export default buildMerkleTree;
