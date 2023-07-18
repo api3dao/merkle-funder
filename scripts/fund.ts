@@ -13,7 +13,7 @@ async function main() {
   const merkleFunderDeployment = await hre.deployments.get('MerkleFunder');
   console.log('MerkleFunder address:', merkleFunderDeployment.address);
 
-  const { deployer: deployerAddress } = await hre.getNamedAccounts();
+  const deployerAddress = (await hre.getUnnamedAccounts())[0];
   console.log('Deployer address:', deployerAddress);
 
   const deployer = await hre.ethers.getSigner(deployerAddress);
