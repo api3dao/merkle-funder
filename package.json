@@ -1,7 +1,11 @@
 {
   "name": "merkle-funder",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "license": "MIT",
+  "private": false,
+  "files": [
+    "contracts"
+  ],
   "scripts": {
     "build": "yarn clean && hardhat compile --force",
     "clean": "rimraf .esbuild .serverless artifacts cache coverage typechain-types",
