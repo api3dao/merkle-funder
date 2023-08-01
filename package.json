@@ -3,10 +3,12 @@
   "version": "0.2.0",
   "license": "MIT",
   "private": false,
+  "main": "src/references.js",
   "files": [
     "contracts",
     "deployments/references.json",
-    "deployments/deployment-block-numbers.json"
+    "deployments/deployment-block-numbers.json",
+    "src/references.js"
   ],
   "scripts": {
     "build": "yarn clean && hardhat compile --force",
