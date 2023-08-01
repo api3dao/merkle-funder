@@ -4,7 +4,9 @@
   "license": "MIT",
   "private": false,
   "files": [
-    "contracts"
+    "contracts",
+    "deployments/references.json",
+    "deployments/deployment-block-numbers.json"
   ],
   "scripts": {
     "build": "yarn clean && hardhat compile --force",
