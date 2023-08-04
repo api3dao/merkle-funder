@@ -9,13 +9,6 @@
     "options": {
       "gasPriceOracle": [
         {
-          "gasPriceStrategy": "latestBlockPercentileGasPrice",
-          "percentile": 60,
-          "minTransactionCount": 20,
-          "pastToCompareInBlocks": 20,
-          "maxDeviationMultiplier": 2
-        },
-        {
           "gasPriceStrategy": "sanitizedProviderRecommendedGasPrice",
           "recommendedGasPriceMultiplier": 1.2,
           "baseFeeMultiplierThreshold": 5,
