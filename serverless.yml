@@ -27,4 +27,4 @@ functions:
     handler: src/handler.run
     timeout: 60
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
