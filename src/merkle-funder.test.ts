@@ -14,9 +14,10 @@ const getGasPriceMock = jest.fn().mockResolvedValue([
 ]);
 
 import { ethers } from 'ethers';
-import { ChainOptions, MerkleFunderDepositories, NamedUnits, decodeRevertString } from '.';
+import { decodeRevertString } from './evm';
 import { fundChainRecipients } from './merkle-funder';
 import buildMerkleTree from './merkle-tree';
+import { ChainOptions, MerkleFunderDepositories, NamedUnits } from './types';
 
 jest.mock('@api3/airnode-utilities', () => ({
   getGasPrice: getGasPriceMock,

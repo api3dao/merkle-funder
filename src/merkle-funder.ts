@@ -1,7 +1,9 @@
 import { getGasPrice } from '@api3/airnode-utilities';
 import { go } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { ChainConfig, buildMerkleTree, decodeRevertString } from './';
+import { decodeRevertString } from './evm';
+import buildMerkleTree from './merkle-tree';
+import { ChainConfig } from './types';
 
 export const fundChainRecipients = async (
   chainConfig: Pick<ChainConfig, 'options' | 'merkleFunderDepositories'>,

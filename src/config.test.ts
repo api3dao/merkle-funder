@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { loadConfig } from './';
 import { generateRandomAddress } from '../test/test-utils';
+import loadConfig from './config';
 
 jest.mock('fs');
 

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
-import { computeMerkleFunderDepositoryAddress, decodeRevertString } from '.';
 import { generateRandomAddress, generateRandomBytes32 } from '../test/test-utils';
-import { MerkleFunderDepository__factory } from '../typechain-types';
+import { MerkleFunderDepository__factory } from './contracts';
+import { computeMerkleFunderDepositoryAddress, decodeRevertString } from './evm';
 
 describe('computeMerkleFunderDepositoryAddress', () => {
   it('should compute the correct MerkleFunderDepository address', async () => {

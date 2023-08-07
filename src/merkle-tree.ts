@@ -1,6 +1,6 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { ethers } from 'ethers';
-import { Values } from './';
+import { Values } from './types';
 
 function buildMerkleTree(values: Values) {
   const treeValues = values.map(({ recipient, lowThreshold, highThreshold }) => [

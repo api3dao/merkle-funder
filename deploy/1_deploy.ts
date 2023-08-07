@@ -1,6 +1,6 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { buildMerkleTree } from '../src';
+import buildMerkleTree from '../src/merkle-tree';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getUnnamedAccounts, ethers } = hre;

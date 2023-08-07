@@ -2,7 +2,7 @@ import { Callback, Context, ScheduledEvent } from 'aws-lambda';
 import { ethers } from 'ethers';
 import { run } from './handler';
 import { fundChainRecipients } from './merkle-funder';
-import { MerkleFunder__factory } from '../typechain-types';
+import { MerkleFunder__factory } from './contracts';
 
 jest.mock('./merkle-funder', () => ({
   fundChainRecipients: jest.fn(),

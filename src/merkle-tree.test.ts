@@ -1,7 +1,8 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { ethers } from 'ethers';
 import { generateRandomAddress } from '../test/test-utils';
-import { buildMerkleTree, Value, Values } from './';
+import buildMerkleTree from './merkle-tree';
+import { Value, Values } from './types';
 
 describe('buildMerkleTree', () => {
   it('should build a merkle tree from values', () => {
