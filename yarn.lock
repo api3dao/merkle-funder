@@ -15,31 +15,41 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@api3/airnode-protocol-v1@^2.8.0":
+"@api3/airnode-protocol-v1@^2.7.1", "@api3/airnode-protocol-v1@^2.8.0":
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/@api3/airnode-protocol-v1/-/airnode-protocol-v1-2.8.0.tgz#19a755bf0dfb127edd362282b09b9ff51409e626"
   integrity sha512-QmDaFvD8U3CYuYqpKP7au7htr1fIW5s6YzoAfduDqh6z6jqFWUHd4wd3m0BYu715SZpu5xSa0lsYpfnPhxHpIg==
   dependencies:
     "@openzeppelin/contracts" "4.8.2"
 
-"@api3/airnode-utilities@^0.11.2":
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/@api3/airnode-utilities/-/airnode-utilities-0.11.2.tgz#4528c3db268e7b7064ebd7536f00b7a9ddd4ccfa"
-  integrity sha512-ytRyp+fAiPfr/PJZrqs0czaS4Rdj+dyUcOxsLLWYQPogK9gwB7N/GX6meu507gv4dUT4Zxs/77cgqJiZOgSZ6Q==
+"@api3/airnode-protocol@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@api3/airnode-protocol/-/airnode-protocol-0.12.0.tgz#b4ca63d018b56253f1c880c6b3b4ea0c717340cc"
+  integrity sha512-MJRQf7MNuB1KIu/tD2/z+yiSkAesZW5PQHfchKUNo55lLVaoPsXf4zMNWfe5rZHB3Kmi6qUrO3lGvBESqJg31Q==
   dependencies:
-    "@api3/airnode-validator" "^0.11.2"
-    "@api3/promise-utils" "^0.4.0"
-    date-fns "^2.29.3"
+    "@api3/airnode-protocol-v1" "^2.7.1"
+    "@openzeppelin/contracts" "4.4.2"
     ethers "^5.7.2"
 
-"@api3/airnode-validator@^0.11.2":
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/@api3/airnode-validator/-/airnode-validator-0.11.2.tgz#92b56f448a3ac3ba2751f057ee8186daf97fa2ad"
-  integrity sha512-q7rsvhOOE53iEYyp5vcJWcZ47tadyK+qItGVUkIg3Bw+kW8cCup5TB1s4nfq1sXE5YHpUpfaLn+Q//y98idpSA==
+"@api3/airnode-utilities@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@api3/airnode-utilities/-/airnode-utilities-0.12.0.tgz#593d0db0024b8f7b6c57198819a34c583759fb87"
+  integrity sha512-/c/ifFDKatS77D7OyM11KPFbeV66YaRFS2dm4Jr9yjzi69wJ/71kcQD/sqg41Q93ewurJ+mgsFJ++j6Dt9ee8g==
   dependencies:
+    "@api3/airnode-validator" "^0.12.0"
+    "@api3/promise-utils" "^0.4.0"
+    date-fns "^2.30.0"
+    ethers "^5.7.2"
+
+"@api3/airnode-validator@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@api3/airnode-validator/-/airnode-validator-0.12.0.tgz#8b5bf39544a12118e872ce60b9e95c6bba2c3e21"
+  integrity sha512-7P5KI7vSWNV6Mbu51Pj3F4+yTufpH2NyolCtIy+/nY0Z+QBCd6hf6hcAmPEHJFXjMsWah3KhwDe2zRNwtGYC9g==
+  dependencies:
+    "@api3/airnode-protocol" "^0.12.0"
     "@api3/ois" "2.1.0"
     "@api3/promise-utils" "^0.4.0"
-    dotenv "^16.0.3"
+    dotenv "^16.3.1"
     ethers "^5.7.2"
     lodash "^4.17.21"
     ora "^5.4.1"
@@ -2133,6 +2143,11 @@
     semver "^6.3.0"
     table "^6.8.0"
     undici "^5.14.0"
+
+"@openzeppelin/contracts@4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.2.tgz#4e889c9c66e736f7de189a53f8ba5b8d789425c2"
+  integrity sha512-NyJV7sJgoGYqbtNUWgzzOGW4T6rR19FmX1IJgXGdapGPWsuMelGJn9h03nos0iqfforCbCB0iYIR0MtIuIFLLw==
 
 "@openzeppelin/contracts@4.8.2":
   version "4.8.2"
@@ -4371,7 +4386,7 @@ data-uri-to-buffer@^4.0.0:
   resolved "https://registry.yarnpkg.com/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz#d8feb2b2881e6a4f58c2e08acfd0e2834e26222e"
   integrity sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==
 
-date-fns@^2.29.3:
+date-fns@^2.30.0:
   version "2.30.0"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.30.0.tgz#f367e644839ff57894ec6ac480de40cae4b0f4d0"
   integrity sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==
@@ -4599,7 +4614,7 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-dotenv@^16.0.3, dotenv@^16.3.1:
+dotenv@^16.3.1:
   version "16.3.1"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
