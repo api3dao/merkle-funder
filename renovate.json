@@ -16,7 +16,7 @@
   ],
   "rangeStrategy": "bump",
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": false
   },
   "dependencyDashboard": false
 }
