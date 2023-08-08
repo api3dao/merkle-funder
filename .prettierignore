@@ -7,8 +7,8 @@ typechain-types
 *.log
 .build
 .esbuild
-src/contracts
 dist
+src/contracts
 
 # Hardhat files
 cache

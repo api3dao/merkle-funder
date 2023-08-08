@@ -6,6 +6,7 @@ typechain
 typechain-types
 *.log
 dist
+src/contracts
 
 # Hardhat files
 cache
