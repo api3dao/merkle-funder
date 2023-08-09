@@ -16,8 +16,8 @@
     "skipLibCheck": true,
 
     "baseUrl": "./",
-    "outDir": "./dist"
-  },
-  "include": ["./src/*.ts"],
-  "exclude": ["./**/*.test.ts"]
+    "outDir": "./dist",
+
+    "forceConsistentCasingInFileNames": true
+  }
 }

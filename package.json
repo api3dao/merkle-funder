@@ -6,7 +6,8 @@
   "main": "dist/src/index",
   "files": [
     "contracts",
-    "dist",
+    "dist/src",
+    "dist/deployments",
     "deployments/references.json",
     "deployments/deployment-block-numbers.json"
   ],
