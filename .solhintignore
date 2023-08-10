@@ -5,6 +5,8 @@ coverage.json
 typechain
 typechain-types
 *.log
+dist
+src/contracts
 
 # Hardhat files
 cache
@@ -12,3 +14,4 @@ artifacts
 deployments
 
 config.json
+

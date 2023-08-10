@@ -1,8 +1,8 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import * as references from '../deployments/references.json';
-import { MerkleFunder__factory } from '../typechain-types';
 import loadConfig from './config';
+import { MerkleFunder__factory } from './contracts';
 import { fundChainRecipients } from './merkle-funder';
 
 const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, chainId: string) => {

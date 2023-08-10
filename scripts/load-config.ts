@@ -1,6 +1,6 @@
 import { go } from '@api3/promise-utils';
-import { loadConfig } from '../src';
 import dotenv from 'dotenv';
+import loadConfig from '../src/config';
 
 dotenv.config();
 

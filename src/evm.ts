@@ -1,6 +1,6 @@
 import { goSync } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { MerkleFunderDepository__factory } from '../typechain-types';
+import { MerkleFunderDepository__factory } from './contracts';
 
 export const computeMerkleFunderDepositoryAddress = async (
   merkleFunderAddress: string,

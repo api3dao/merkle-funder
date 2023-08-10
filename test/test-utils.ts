@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { EvmAddress, EvmHash } from '../src';
+import { EvmAddress, EvmHash } from '../src/types';
 
 export function generateRandomAddress(): EvmAddress {
   return ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.randomBytes(20)));

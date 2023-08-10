@@ -1,7 +1,9 @@
-import loadConfig from './config';
-import buildMerkleTree from './merkle-tree';
+export * from './contracts';
+import references from '../deployments/references.json';
+export { references };
 
-export { loadConfig, buildMerkleTree };
+import buildMerkleTree from './merkle-tree';
+export { buildMerkleTree };
 
 export * from './evm';
 export * from './merkle-funder';
