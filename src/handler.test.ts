@@ -28,8 +28,7 @@ const mockConfig = {
   },
 };
 jest.mock('./config', () => ({
-  __esModule: true,
-  default: jest.fn(() => mockConfig),
+  loadConfig: jest.fn(() => mockConfig),
 }));
 
 describe('run', () => {

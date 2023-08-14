@@ -1,7 +1,7 @@
 import { goSync } from '@api3/promise-utils';
 import * as hre from 'hardhat';
 import * as readline from 'readline';
-import loadConfig from '../src/config';
+import { loadConfig } from '../src/config';
 import { computeMerkleFunderDepositoryAddress } from '../src/evm';
 import buildMerkleTree from '../src/merkle-tree';
 
@@ -51,14 +51,14 @@ async function main() {
     );
 
     if ((await hre.ethers.provider.getCode(merkleFunderDepositoryAddress)) === '0x') {
-      const answer = await new Promise<string>((resolve) => {
+      const answer = await new Promise<string>((resolve) =>
         rl.question(
           'Your config specifies a MerkleFunderDepository that is not deployed yet. Continue? (y/n) [y]: ',
           (input) => {
             resolve(input.trim().toLowerCase() || 'y');
           }
-        );
-      });
+        )
+      );
 
       if (answer === 'y') {
         const tx = await merkleFunder.deployMerkleFunderDepository(owner, tree.root);

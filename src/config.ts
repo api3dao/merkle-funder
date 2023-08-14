@@ -98,7 +98,23 @@ function interpolateSecrets(config: unknown, secrets: Secrets): GoResult<unknown
   return goSync(() => JSON.parse(interpolatedConfig.replace(ESCAPED_ES_MATCH_REGEXP, '$1')));
 }
 
-const loadConfig = (configPath = './config/config.json') => {
+const replaceInterpolationStrings = (obj: any): any => {
+  if (typeof obj === 'string') {
+    obj = obj.replace(/\${MNEMONIC}/g, 'test test test test test test test test test test test junk');
+    obj = obj.replace(/\${FUNDER_RPC_URL_(.*?)_1}/g, 'https://rpc.example.com');
+  } else if (typeof obj === 'object' && obj !== null) {
+    for (const key in obj) {
+      obj[key] = replaceInterpolationStrings(obj[key]);
+    }
+  }
+  return obj;
+};
+
+export const validateConfig = (config: unknown, ignoreInterpolationStrings = false) => {
+  return configSchema.parse(!ignoreInterpolationStrings ? config : replaceInterpolationStrings(config));
+};
+
+export const loadConfig = (configPath = './config/config.json') => {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
   const interpolateConfigRes = interpolateSecrets(config, process.env);
@@ -106,7 +122,5 @@ const loadConfig = (configPath = './config/config.json') => {
     throw new Error(`Secrets interpolation failed: ${interpolateConfigRes.error.message}`);
   }
 
-  return configSchema.parse(interpolateConfigRes.data);
+  return validateConfig(interpolateConfigRes.data);
 };
-
-export default loadConfig;

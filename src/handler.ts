@@ -1,7 +1,7 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import * as references from '../deployments/references.json';
-import loadConfig from './config';
+import { loadConfig } from './config';
 import { MerkleFunder__factory } from './contracts';
 import { fundChainRecipients } from './merkle-funder';
 
