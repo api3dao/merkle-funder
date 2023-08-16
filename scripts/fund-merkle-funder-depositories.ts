@@ -1,6 +1,6 @@
 import { go, goSync } from '@api3/promise-utils';
 import * as hre from 'hardhat';
-import loadConfig from '../src/config';
+import { loadConfig } from '../src/config';
 import { computeMerkleFunderDepositoryAddress } from '../src/evm';
 import buildMerkleTree from '../src/merkle-tree';
 

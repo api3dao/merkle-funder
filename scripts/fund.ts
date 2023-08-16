@@ -1,6 +1,6 @@
 import { go } from '@api3/promise-utils';
 import * as hre from 'hardhat';
-import loadConfig from '../src/config';
+import { loadConfig } from '../src/config';
 import { fundChainRecipients } from '../src/merkle-funder';
 
 async function main() {

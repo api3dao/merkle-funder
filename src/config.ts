@@ -2,7 +2,7 @@ import { config as airnodeConfig } from '@api3/airnode-validator';
 import { GoResult, goSync } from '@api3/promise-utils';
 import { ethers } from 'ethers';
 import fs from 'fs';
-import { reduce, template } from 'lodash';
+import { cloneDeepWith, isString, reduce, template } from 'lodash';
 import { z } from 'zod';
 import { Secrets } from './types';
 
@@ -98,7 +98,20 @@ function interpolateSecrets(config: unknown, secrets: Secrets): GoResult<unknown
   return goSync(() => JSON.parse(interpolatedConfig.replace(ESCAPED_ES_MATCH_REGEXP, '$1')));
 }
 
-const loadConfig = (configPath = './config/config.json') => {
+const replaceInterpolationStrings = (obj: any): any =>
+  cloneDeepWith(obj, (value) => {
+    if (isString(value)) {
+      return value
+        .replace(/\${MNEMONIC}/g, 'test test test test test test test test test test test junk')
+        .replace(/\${FUNDER_RPC_URL_(.*?)}/g, 'https://rpc.example.com');
+    }
+  });
+
+export const validateConfig = (config: unknown, ignoreInterpolationStrings = false) => {
+  return configSchema.parse(!ignoreInterpolationStrings ? config : replaceInterpolationStrings(config));
+};
+
+export const loadConfig = (configPath = './config/config.json') => {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
   const interpolateConfigRes = interpolateSecrets(config, process.env);
@@ -106,7 +119,5 @@ const loadConfig = (configPath = './config/config.json') => {
     throw new Error(`Secrets interpolation failed: ${interpolateConfigRes.error.message}`);
   }
 
-  return configSchema.parse(interpolateConfigRes.data);
+  return validateConfig(interpolateConfigRes.data);
 };
-
-export default loadConfig;
