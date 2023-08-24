@@ -1,3 +1,4 @@
+import { addMetadata, logger, removeMetadata, setLogOptions } from '@api3/airnode-utilities';
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import * as references from '../deployments/references.json';
@@ -24,11 +25,15 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   const startedAt = new Date();
   const config = loadConfig();
 
+  setLogOptions({
+    format: 'plain', //config.nodeSettings.logFormat,
+    level: 'INFO', //config.nodeSettings.logLevel,
+  });
+
   const chainFundingResults = await Promise.allSettled(
     Object.entries(config).flatMap(([chainId, { providers, funderMnemonic, ...chainConfig }]) =>
       Object.entries(providers).map(async ([providerName, provider]) => {
-        console.log(`Funding recipients on chain with ID: ${chainId} using provider: ${providerName}`);
-
+        addMetadata({ 'CHAIN-ID': chainId, PROVIDER: providerName });
         const merkleFunderContract = getMerkleFunderContract(funderMnemonic, provider.url, chainId);
         await fundChainRecipients(chainId, chainConfig, merkleFunderContract);
       })
@@ -36,11 +41,12 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   );
 
   chainFundingResults.forEach((result) => {
+    removeMetadata(['CHAIN-ID', 'PROVIDER']);
     if (result.status === 'rejected') {
-      console.log(result.reason);
+      logger.error(result.reason.message);
     }
   });
 
   const endedAt = new Date();
-  console.log(`Scheduled task finished running. Run delta: ${(endedAt.getTime() - startedAt.getTime()) / 1000} s`);
+  logger.log(`Scheduled task finished running. Run delta: ${(endedAt.getTime() - startedAt.getTime()) / 1000} s`);
 };
