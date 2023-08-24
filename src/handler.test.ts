@@ -45,6 +45,7 @@ describe('run', () => {
     expect(fundChainRecipients).toHaveBeenCalledTimes(2);
     expect(fundChainRecipients).toHaveBeenNthCalledWith(
       1,
+      '31337',
       expect.anything(),
       expect.objectContaining({
         address: merkleFunderContractAddress,
@@ -57,6 +58,7 @@ describe('run', () => {
     );
     expect(fundChainRecipients).toHaveBeenNthCalledWith(
       2,
+      '31337',
       expect.anything(),
       expect.objectContaining({
         address: merkleFunderContractAddress,

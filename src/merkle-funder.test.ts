@@ -117,7 +117,11 @@ describe('fundChainRecipients', () => {
     // Capture console.log outputs
     const consoleLogSpy = jest.spyOn(console, 'log');
 
-    await fundChainRecipients({ options, merkleFunderDepositories }, mockContract as unknown as ethers.Contract);
+    await fundChainRecipients(
+      '31337',
+      { options, merkleFunderDepositories },
+      mockContract as unknown as ethers.Contract
+    );
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
@@ -132,13 +136,18 @@ describe('fundChainRecipients', () => {
       [owner, treeRoot, proof2, values[1].recipient, ethers.utils.parseEther('5'), ethers.utils.parseEther('15')]
     );
     const [, ...multicallCalldata] = staticMulticallCalldata;
-    expect(consoleLogSpy).toHaveBeenCalledWith('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Expected number of calldatas to be sent: ',
+      multicallCalldata.length,
+      '31337'
+    );
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
-      expect.any(String)
+      expect.any(String),
+      '31337'
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith('Block number:', '10');
+    expect(consoleLogSpy).toHaveBeenCalledWith('Block number:', '10', '31337');
     expect(consoleLogSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String));
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Calldata #${1} reverted with message:`,
@@ -157,7 +166,8 @@ describe('fundChainRecipients', () => {
       expect.any(String)
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(
-      `Sent tx with hash ${tryMulticallResult.hash} that will send funds to ${multicallCalldata.length} recipients`
+      `Sent tx with hash ${tryMulticallResult.hash} that will send funds to ${multicallCalldata.length} recipients`,
+      '31337'
     );
     expect(consoleLogSpy).not.toHaveBeenCalledWith('All recipients are already funded');
   });
@@ -250,7 +260,11 @@ describe('fundChainRecipients', () => {
     // Capture console.log outputs
     const consoleLogSpy = jest.spyOn(console, 'log');
 
-    await fundChainRecipients({ options, merkleFunderDepositories }, mockContract as unknown as ethers.Contract);
+    await fundChainRecipients(
+      '31337',
+      { options, merkleFunderDepositories },
+      mockContract as unknown as ethers.Contract
+    );
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
@@ -265,21 +279,31 @@ describe('fundChainRecipients', () => {
       [owner, treeRoot, proof2, values[1].recipient, ethers.utils.parseEther('5'), ethers.utils.parseEther('15')]
     );
     const [, ...multicallCalldata] = staticMulticallCalldata;
-    expect(consoleLogSpy).toHaveBeenCalledWith('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Expected number of calldatas to be sent: ',
+      multicallCalldata.length,
+      '31337'
+    );
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
-    expect(consoleLogSpy).toHaveBeenCalledWith('Block number:', '10');
-    expect(consoleLogSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String));
-    expect(consoleLogSpy).toHaveBeenCalledWith(`Calldata #${1} reverted with message:`, 'mocked-revert-string');
+    expect(consoleLogSpy).toHaveBeenCalledWith('Block number:', '10', '31337');
+    expect(consoleLogSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String), '31337');
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      `Calldata #${1} reverted with message:`,
+      'mocked-revert-string',
+      '31337'
+    );
     expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
     expect(mockContractTryMulticall).toHaveBeenCalledWith([staticMulticallCalldata[2]], expect.anything());
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.tryMulticall:`,
-      expect.any(String)
+      expect.any(String),
+      '31337'
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(
-      `Sent tx with hash ${tryMulticallResult.hash} that will send funds to 1 recipients`
+      `Sent tx with hash ${tryMulticallResult.hash} that will send funds to 1 recipients`,
+      '31337'
     );
     expect(consoleLogSpy).not.toHaveBeenCalledWith('All recipients are already funded');
   });
@@ -357,7 +381,11 @@ describe('fundChainRecipients', () => {
     // Capture console.log outputs
     const consoleLogSpy = jest.spyOn(console, 'log');
 
-    await fundChainRecipients({ options, merkleFunderDepositories }, mockContract as unknown as ethers.Contract);
+    await fundChainRecipients(
+      '31337',
+      { options, merkleFunderDepositories },
+      mockContract as unknown as ethers.Contract
+    );
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
@@ -367,11 +395,16 @@ describe('fundChainRecipients', () => {
       [owner, treeRoot, proof1, values[0].recipient, ethers.utils.parseEther('10'), ethers.utils.parseEther('20')]
     );
     const [, ...multicallCalldata] = staticMulticallCalldata;
-    expect(consoleLogSpy).toHaveBeenCalledWith('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Expected number of calldatas to be sent: ',
+      multicallCalldata.length,
+      '31337'
+    );
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
     expect(consoleLogSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
-      expect.any(String)
+      expect.any(String),
+      '31337'
     );
     expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
@@ -379,7 +412,8 @@ describe('fundChainRecipients', () => {
     expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());
     expect(consoleLogSpy).toHaveBeenCalledWith(
       'Failed to call merkleFunderContract.tryMulticall:',
-      'mocked-error-message'
+      'mocked-error-message',
+      '31337'
     );
   });
 });
