@@ -22,7 +22,9 @@ const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, ch
 };
 
 export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Context): Promise<void> => {
-  const startedAt = new Date();
+  const consoleTimeLabel = 'Scheduled task finished running. Time elapsed';
+  console.time(consoleTimeLabel);
+
   const config = loadConfig();
 
   setLogOptions({
@@ -47,6 +49,5 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
     }
   });
 
-  const endedAt = new Date();
-  logger.log(`Scheduled task finished running. Run delta: ${(endedAt.getTime() - startedAt.getTime()) / 1000} s`);
+  console.timeEnd(consoleTimeLabel);
 };
