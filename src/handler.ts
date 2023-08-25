@@ -1,4 +1,4 @@
-import { addMetadata, logger, removeMetadata, setLogOptions } from '@api3/airnode-utilities';
+import { LogLevel, addMetadata, logger, removeMetadata, setLogOptions } from '@api3/airnode-utilities';
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import * as references from '../deployments/references.json';
@@ -28,8 +28,8 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
   const config = loadConfig();
 
   setLogOptions({
-    format: 'plain', //config.nodeSettings.logFormat,
-    level: 'INFO', //config.nodeSettings.logLevel,
+    format: 'plain',
+    level: (process.env.LOG_LEVEL as LogLevel) || 'INFO',
   });
 
   const chainFundingResults = await Promise.allSettled(
@@ -46,6 +46,7 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
     removeMetadata(['CHAIN-ID', 'PROVIDER']);
     if (result.status === 'rejected') {
       logger.error(result.reason.message);
+      logger.debug(result.reason.stack);
     }
   });
 

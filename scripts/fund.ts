@@ -2,14 +2,14 @@ import { go } from '@api3/promise-utils';
 import * as hre from 'hardhat';
 import { loadConfig } from '../src/config';
 import { fundChainRecipients } from '../src/merkle-funder';
-import { logger, setLogOptions } from '@api3/airnode-utilities';
+import { LogLevel, logger, setLogOptions } from '@api3/airnode-utilities';
 
 async function main() {
   const chainId = await hre.getChainId();
 
   setLogOptions({
-    format: 'plain', //config.nodeSettings.logFormat,
-    level: 'INFO', //config.nodeSettings.logLevel,
+    format: 'plain',
+    level: (process.env.LOG_LEVEL as LogLevel) || 'INFO',
     meta: {
       'CHAIN-ID': chainId,
       NETWORK: hre.network.name,
