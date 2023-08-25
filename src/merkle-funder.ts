@@ -6,6 +6,7 @@ import buildMerkleTree from './merkle-tree';
 import { ChainConfig } from './types';
 
 export const fundChainRecipients = async (
+  chainId: string,
   chainConfig: Pick<ChainConfig, 'options' | 'merkleFunderDepositories'>,
   merkleFunderContract: ethers.Contract
 ) => {
@@ -27,7 +28,7 @@ export const fundChainRecipients = async (
         ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
       ])
     );
-    console.log('Expected number of calldatas to be sent: ', multicallCalldata.length);
+    console.log('Expected number of calldatas to be sent: ', multicallCalldata.length, chainId);
 
     const tryStaticMulticallResult = await go(() =>
       merkleFunderContract.callStatic.tryMulticall([getBlockNumberCalldata, ...multicallCalldata])
@@ -35,7 +36,8 @@ export const fundChainRecipients = async (
     if (!tryStaticMulticallResult.success) {
       console.log(
         'Failed to call merkleFunderContract.callStatic.tryMulticall:',
-        tryStaticMulticallResult.error.message
+        tryStaticMulticallResult.error.message,
+        chainId
       );
       continue;
     }
@@ -47,16 +49,20 @@ export const fundChainRecipients = async (
 
     // Get block number to use as argument when fetching the transaction count
     if (!getBlockNumberSuccess) {
-      console.log('Failded to fetch block number:', decodeRevertString(getBlockNumberReturndata));
+      console.log('Failded to fetch block number:', decodeRevertString(getBlockNumberReturndata), chainId);
       continue;
     }
     const blockNumber = ethers.BigNumber.from(getBlockNumberReturndata);
-    console.log('Block number:', blockNumber.toString());
+    console.log('Block number:', blockNumber.toString(), chainId);
 
     // Filter out calldata that failed to be sent
     const successfulMulticallCalldata = (remainingSuccesses as boolean[]).reduce((acc, success, index) => {
       if (!success) {
-        console.log(`Calldata #${index + 1} reverted with message:`, decodeRevertString(remainingRetunrdata[index]));
+        console.log(
+          `Calldata #${index + 1} reverted with message:`,
+          decodeRevertString(remainingRetunrdata[index]),
+          chainId
+        );
         return acc;
       }
       return [...acc, multicallCalldata[index]];
@@ -64,10 +70,15 @@ export const fundChainRecipients = async (
 
     // Try to send the calldatas
     // TODO: A potential improvement here is to batch these calls
-    console.log('Actual number of calldatas to be sent: ', successfulMulticallCalldata.length);
+    console.log('Actual number of calldatas to be sent: ', successfulMulticallCalldata.length, chainId);
     if (successfulMulticallCalldata.length > 0) {
-      nonce = nonce ?? (await merkleFunderContract.signer.getTransactionCount(blockNumber.toNumber()));
-      console.log('Nonce:', nonce);
+      nonce =
+        nonce ??
+        (await merkleFunderContract.signer.getTransactionCount(
+          // HACK: Arbitrum returns the L1 block number so we need to fetch the L2 block number via provider RPC call
+          chainId === '42161' ? await merkleFunderContract.provider.getBlockNumber() : blockNumber.toNumber()
+        ));
+      console.log('Nonce:', nonce, chainId);
 
       // Get the latest gas price
       const [logs, gasTarget] = await getGasPrice(merkleFunderContract.provider, chainConfig.options);
@@ -78,11 +89,12 @@ export const fundChainRecipients = async (
         merkleFunderContract.tryMulticall(successfulMulticallCalldata, { nonce, ...gasTarget })
       );
       if (!tryMulticallResult.success) {
-        console.log('Failed to call merkleFunderContract.tryMulticall:', tryMulticallResult.error.message);
+        console.log('Failed to call merkleFunderContract.tryMulticall:', tryMulticallResult.error.message, chainId);
         continue;
       }
       console.log(
-        `Sent tx with hash ${tryMulticallResult.data.hash} that will send funds to ${successfulMulticallCalldata.length} recipients`
+        `Sent tx with hash ${tryMulticallResult.data.hash} that will send funds to ${successfulMulticallCalldata.length} recipients`,
+        chainId
       );
       nonce++;
     }

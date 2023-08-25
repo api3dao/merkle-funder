@@ -30,7 +30,7 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
         console.log(`Funding recipients on chain with ID: ${chainId} using provider: ${providerName}`);
 
         const merkleFunderContract = getMerkleFunderContract(funderMnemonic, provider.url, chainId);
-        await fundChainRecipients(chainConfig, merkleFunderContract);
+        await fundChainRecipients(chainId, chainConfig, merkleFunderContract);
       })
     )
   );

@@ -33,7 +33,7 @@ async function main() {
     return;
   }
 
-  await fundChainRecipients(chainConfig, merkleFunderContract);
+  await fundChainRecipients(chainId, chainConfig, merkleFunderContract);
 }
 
 main()
