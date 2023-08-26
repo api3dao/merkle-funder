@@ -1,8 +1,8 @@
 import { Callback, Context, ScheduledEvent } from 'aws-lambda';
 import { ethers } from 'ethers';
+import { MerkleFunder__factory } from './contracts';
 import { run } from './handler';
 import { fundChainRecipients } from './merkle-funder';
-import { MerkleFunder__factory } from './contracts';
 
 jest.mock('./merkle-funder', () => ({
   fundChainRecipients: jest.fn(),
@@ -54,7 +54,8 @@ describe('run', () => {
           provider: expect.objectContaining({ connection: expect.objectContaining({ url: 'http://provider1.com' }) }),
         }),
         interface: expect.objectContaining(new ethers.utils.Interface(MerkleFunder__factory.abi)),
-      })
+      }),
+      expect.objectContaining({ format: 'plain', level: 'INFO', meta: { 'CHAIN-ID': '31337', PROVIDER: 'provider1' } })
     );
     expect(fundChainRecipients).toHaveBeenNthCalledWith(
       2,
@@ -67,7 +68,8 @@ describe('run', () => {
           provider: expect.objectContaining({ connection: expect.objectContaining({ url: 'http://provider2.com' }) }),
         }),
         interface: expect.objectContaining(new ethers.utils.Interface(MerkleFunder__factory.abi)),
-      })
+      }),
+      expect.objectContaining({ format: 'plain', level: 'INFO', meta: { 'CHAIN-ID': '31337', PROVIDER: 'provider2' } })
     );
   });
 });

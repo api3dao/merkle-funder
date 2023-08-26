@@ -13,7 +13,7 @@ const getGasPriceMock = jest.fn().mockResolvedValue([
   },
 ]);
 
-import { logger } from '@api3/airnode-utilities';
+import { LogOptions, logger } from '@api3/airnode-utilities';
 import { ethers } from 'ethers';
 import { decodeRevertString } from './evm';
 import { fundChainRecipients } from './merkle-funder';
@@ -33,6 +33,8 @@ jest.mock('./merkle-tree', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+
+const logOptions: LogOptions = { format: 'plain', level: 'INFO', meta: { 'CHAIN-ID': '31337', PROVIDER: 'provider1' } };
 
 describe('fundChainRecipients', () => {
   afterEach(() => {
@@ -127,12 +129,13 @@ describe('fundChainRecipients', () => {
     await fundChainRecipients(
       '31337',
       { options, merkleFunderDepositories },
-      mockContract as unknown as ethers.Contract
+      mockContract as unknown as ethers.Contract,
+      logOptions
     );
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Processing 1 merkleFunderDepositories...');
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Processing 1 merkleFunderDepositories...', logOptions);
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith('getBlockNumber()');
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith(
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
@@ -146,28 +149,37 @@ describe('fundChainRecipients', () => {
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
     expect(loggerErrorSpy).not.toHaveBeenCalledWith(
       'Failed to call merkleFunderContract.callStatic.tryMulticall:',
-      expect.any(String)
+      expect.any(String),
+      expect.any(Error),
+      logOptions
     );
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Block number fetched while testing funding of recipients: 10');
-    expect(loggerInfoSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String));
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient1 succeeded');
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient2 succeeded');
+    expect(loggerInfoSpy).toHaveBeenCalledWith(
+      'Block number fetched while testing funding of recipients: 10',
+      logOptions
+    );
+    expect(loggerInfoSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String), logOptions);
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient1 succeeded', logOptions);
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient2 succeeded', logOptions);
     expect(loggerInfoSpy).not.toHaveBeenCalledWith(
       'Funding test of 0xrecipient1 reverted with message:',
-      decodeRevertString(returndata[1])
+      decodeRevertString(returndata[1]),
+      logOptions
     );
     expect(loggerInfoSpy).not.toHaveBeenCalledWith(
       'Funding test of 0xrecipient2 reverted with message:',
-      decodeRevertString(returndata[2])
+      decodeRevertString(returndata[2]),
+      logOptions
     );
     expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(loggerInfoSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
     expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());
     expect(loggerErrorSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Failed to call merkleFunderContract.tryMulticall:')
+      expect.stringContaining('Failed to call merkleFunderContract.tryMulticall:'),
+      expect.any(Error),
+      logOptions
     );
-    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sent tx with hash ${tryMulticallResult.hash}`);
+    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sent tx with hash ${tryMulticallResult.hash}`, logOptions);
   });
 
   it('should handle failed callStatic.tryMulticall', async () => {
@@ -262,12 +274,13 @@ describe('fundChainRecipients', () => {
     await fundChainRecipients(
       '31337',
       { options, merkleFunderDepositories },
-      mockContract as unknown as ethers.Contract
+      mockContract as unknown as ethers.Contract,
+      logOptions
     );
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Processing 1 merkleFunderDepositories...');
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Processing 1 merkleFunderDepositories...', logOptions);
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith('getBlockNumber()');
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith(
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
@@ -278,20 +291,31 @@ describe('fundChainRecipients', () => {
       [owner, treeRoot, proof2, values[1].recipient, ethers.utils.parseEther('5'), ethers.utils.parseEther('15')]
     );
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Block number fetched while testing funding of recipients: 10');
-    expect(loggerErrorSpy).not.toHaveBeenCalledWith('Failded to fetch block number:', expect.any(String));
     expect(loggerInfoSpy).toHaveBeenCalledWith(
-      'Funding test of 0xrecipient1 reverted with message: mocked-revert-string'
+      'Block number fetched while testing funding of recipients: 10',
+      logOptions
     );
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient2 succeeded');
+    expect(loggerErrorSpy).not.toHaveBeenCalledWith(
+      'Failded to fetch block number:',
+      expect.any(String),
+      expect.any(Error),
+      logOptions
+    );
+    expect(loggerInfoSpy).toHaveBeenCalledWith(
+      'Funding test of 0xrecipient1 reverted with message: mocked-revert-string',
+      logOptions
+    );
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient2 succeeded', logOptions);
     expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(loggerInfoSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
     expect(mockContractTryMulticall).toHaveBeenCalledWith([staticMulticallCalldata[2]], expect.anything());
     expect(loggerErrorSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Failed to call merkleFunderContract.tryMulticall:')
+      expect.stringContaining('Failed to call merkleFunderContract.tryMulticall:'),
+      expect.any(Error),
+      logOptions
     );
-    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sent tx with hash ${tryMulticallResult.hash}`);
+    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sent tx with hash ${tryMulticallResult.hash}`, logOptions);
   });
 
   it('should handle failed tryMulticall', async () => {
@@ -371,29 +395,33 @@ describe('fundChainRecipients', () => {
     await fundChainRecipients(
       '31337',
       { options, merkleFunderDepositories },
-      mockContract as unknown as ethers.Contract
+      mockContract as unknown as ethers.Contract,
+      logOptions
     );
 
     expect(buildMerkleTree).toHaveBeenCalledTimes(1);
     expect(buildMerkleTree).toHaveBeenCalledWith(values);
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Processing 1 merkleFunderDepositories...');
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Processing 1 merkleFunderDepositories...', logOptions);
     expect(mockContract.interface.encodeFunctionData).toHaveBeenCalledWith(
       'fund(address,bytes32,bytes32[],address,uint256,uint256)',
       [owner, treeRoot, proof1, values[0].recipient, ethers.utils.parseEther('10'), ethers.utils.parseEther('20')]
     );
     const [, ...multicallCalldata] = staticMulticallCalldata;
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient1 succeeded');
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient1 succeeded', logOptions);
     expect(mockContractCallStaticTryMulticall).toHaveBeenCalledWith(staticMulticallCalldata);
     expect(loggerInfoSpy).not.toHaveBeenCalledWith(
       `Failed to call merkleFunderContract.callStatic.tryMulticall:`,
-      expect.any(String)
+      expect.any(String),
+      logOptions
     );
     expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
     expect(getGasPriceMock).toHaveBeenCalledTimes(1);
     expect(loggerInfoSpy).toHaveBeenCalledWith('mocked-get-gas-price-message');
     expect(mockContractTryMulticall).toHaveBeenCalledWith(multicallCalldata, expect.anything());
     expect(loggerErrorSpy).toHaveBeenCalledWith(
-      'Failed to call merkleFunderContract.tryMulticall: mocked-error-message'
+      'Failed to call merkleFunderContract.tryMulticall: mocked-error-message',
+      expect.any(Error),
+      logOptions
     );
   });
 });

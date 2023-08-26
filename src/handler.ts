@@ -1,4 +1,4 @@
-import { LogLevel, addMetadata, logger, removeMetadata, setLogOptions } from '@api3/airnode-utilities';
+import { LogLevel, LogOptions, logger, setLogOptions } from '@api3/airnode-utilities';
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import * as references from '../deployments/references.json';
@@ -27,23 +27,23 @@ export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Co
 
   const config = loadConfig();
 
-  setLogOptions({
+  const baseLogOptions: LogOptions = {
     format: 'plain',
     level: (process.env.LOG_LEVEL as LogLevel) || 'INFO',
-  });
+  };
+  setLogOptions(baseLogOptions);
 
   const chainFundingResults = await Promise.allSettled(
     Object.entries(config).flatMap(([chainId, { providers, funderMnemonic, ...chainConfig }]) =>
       Object.entries(providers).map(async ([providerName, provider]) => {
-        addMetadata({ 'CHAIN-ID': chainId, PROVIDER: providerName });
+        const logOptions = { ...baseLogOptions, meta: { 'CHAIN-ID': chainId, PROVIDER: providerName } };
         const merkleFunderContract = getMerkleFunderContract(funderMnemonic, provider.url, chainId);
-        await fundChainRecipients(chainId, chainConfig, merkleFunderContract);
+        await fundChainRecipients(chainId, chainConfig, merkleFunderContract, logOptions);
       })
     )
   );
 
   chainFundingResults.forEach((result) => {
-    removeMetadata(['CHAIN-ID', 'PROVIDER']);
     if (result.status === 'rejected') {
       logger.error(result.reason.message);
       logger.debug(result.reason.stack);
