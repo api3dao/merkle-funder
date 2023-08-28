@@ -235,6 +235,7 @@ describe('fundChainRecipients', () => {
     const mockContract = {
       interface: {
         encodeFunctionData: encodeFunctionDataMock,
+        parseError: () => null,
       },
       callStatic: {
         tryMulticall: mockContractCallStaticTryMulticall,

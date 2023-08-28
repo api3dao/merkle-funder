@@ -33,7 +33,10 @@ export const decodeRevertString = (returndata: string) => {
   const goDecode = goSync(
     () => ethers.utils.defaultAbiCoder.decode(['string'], `0x${returndata.substring(2 + 4 * 2)}`)[0]
   );
-  if (!goDecode.success) return 'No revert string';
+
+  if (!goDecode.success) {
+    return 'No revert string';
+  }
 
   return goDecode.data;
 };
