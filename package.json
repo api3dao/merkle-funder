@@ -15,6 +15,7 @@
     "build": "yarn clean && hardhat compile --force && tsc",
     "clean": "rimraf dist .esbuild .serverless artifacts cache coverage typechain-types",
     "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
+    "deploy:merkle-funder:undeterministic": "hardhat deploy --network $NETWORK",
     "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat deploy --watch --network",
     "env-example:write": "ts-node scripts/write-env-example-file.ts",
