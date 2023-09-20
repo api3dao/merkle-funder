@@ -15,7 +15,14 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@api3/airnode-protocol-v1@^2.7.1", "@api3/airnode-protocol-v1@^2.8.0":
+"@api3/airnode-protocol-v1@^2.10.0":
+  version "2.10.0"
+  resolved "https://registry.yarnpkg.com/@api3/airnode-protocol-v1/-/airnode-protocol-v1-2.10.0.tgz#b03cf02c7b65eed5b57cd37e24d91dbcbff62da6"
+  integrity sha512-5pXI9OUXeyM2IbVYrkW48Eymt7qGT5nfBU8GR2XZsRE8dCRZTIIfp+xdAMH+OFm62GGnUDz9e1uTiAHkRWrtKA==
+  dependencies:
+    "@openzeppelin/contracts" "4.8.2"
+
+"@api3/airnode-protocol-v1@^2.7.1":
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/@api3/airnode-protocol-v1/-/airnode-protocol-v1-2.8.0.tgz#19a755bf0dfb127edd362282b09b9ff51409e626"
   integrity sha512-QmDaFvD8U3CYuYqpKP7au7htr1fIW5s6YzoAfduDqh6z6jqFWUHd4wd3m0BYu715SZpu5xSa0lsYpfnPhxHpIg==
@@ -56,12 +63,12 @@
     yargs "^17.7.2"
     zod "^3.21.4"
 
-"@api3/chains@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@api3/chains/-/chains-3.3.0.tgz#a1b370f7b57907a5cd86f56a3207c424a9cb350d"
-  integrity sha512-/INfCDsOrxn/mTxkl3NPP0IukNIhAzpw9fmB4R+0GOJJqC6x+nBvApFzCqG7LeBRhdVIMUoIcbvxG7aAW4eF0Q==
+"@api3/chains@^3.5.0":
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/@api3/chains/-/chains-3.5.0.tgz#63aba21b619361e36c1657628bba983409077768"
+  integrity sha512-OzdCBaMQMQ6gPRBqa+8MTY83d6FquuA03IzU+5Zp0zk+pIRLlUd52dZmhycYv9ZOnJf/fd+pHtlKYSNGUhfuDQ==
   dependencies:
-    zod "^3.21.4"
+    zod "^3.22.2"
 
 "@api3/ois@2.1.0":
   version "2.1.0"
@@ -10212,3 +10219,8 @@ zod@^3.21.4:
   version "3.21.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.21.4.tgz#10882231d992519f0a10b5dd58a38c9dabbb64db"
   integrity sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==
+
+zod@^3.22.2:
+  version "3.22.2"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.2.tgz#3add8c682b7077c05ac6f979fea6998b573e157b"
+  integrity sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==
