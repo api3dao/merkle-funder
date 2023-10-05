@@ -7,10 +7,7 @@ const chainsEnvVars = ['localhost', ...api3Chains.CHAINS.map((chain) => chain.al
 
 fs.writeFileSync(
   'example.env',
-  [...chainsEnvVars, ...api3Chains.hardhatConfig.getEnvVariableNames()].reduce(
-    (fileContents: string, envVariableName: string) => {
-      return fileContents + `${envVariableName}=""\n`;
-    },
-    ''
-  )
+  `LOG_LEVEL=INFO\n${[...chainsEnvVars, ...api3Chains.hardhatConfig.getEnvVariableNames()]
+    .map((envVariableName) => `${envVariableName}=""`)
+    .join('\n')}\n`
 );

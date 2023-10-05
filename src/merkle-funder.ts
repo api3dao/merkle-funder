@@ -85,11 +85,11 @@ export const fundChainRecipients = async (
     const successfulMulticallCalldata = (remainingSuccesses as boolean[]).reduce(
       (acc: { recipient: string; calldata: string }[], success, index) => {
         if (!success) {
-          // TODO: how to handle custom errors since those cannot be decoded?
+          const reason =
+            merkleFunderContract.interface.parseError(remainingRetunrdata[index])?.name ??
+            decodeRevertString(remainingRetunrdata[index]);
           logger.info(
-            `Funding test of ${multicallCalldata[index].recipient} reverted with message: ${decodeRevertString(
-              remainingRetunrdata[index]
-            )}`,
+            `Funding test of ${multicallCalldata[index].recipient} reverted with message: ${reason}`,
             depositoryLogOptions
           );
           return acc;
