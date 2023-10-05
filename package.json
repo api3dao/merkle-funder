@@ -89,6 +89,6 @@
     "@openzeppelin/merkle-tree": "^1.0.5",
     "ethers": "^5.7.2",
     "lodash": "^4.17.21",
-    "zod": "^3.21.4"
+    "zod": "^3.22.3"
   }
 }
