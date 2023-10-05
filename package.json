@@ -1,6 +1,6 @@
 {
   "name": "@api3/merkle-funder",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "MIT",
   "private": false,
   "main": "dist/src/index",
@@ -15,6 +15,7 @@
     "build": "yarn clean && hardhat compile --force && tsc",
     "clean": "rimraf dist .esbuild .serverless artifacts cache coverage typechain-types",
     "deploy:merkle-funder": "DETERMINISTIC=true hardhat deploy --network $NETWORK",
+    "deploy:merkle-funder:undeterministic": "hardhat deploy --network $NETWORK",
     "deploy:merkle-funder-depositories": "hardhat run ./scripts/deploy-merkle-funder-depositories.ts --network $NETWORK",
     "deploy:watch": "hardhat deploy --watch --network",
     "env-example:write": "ts-node scripts/write-env-example-file.ts",
@@ -29,8 +30,8 @@
     "prettier": "prettier --write \"./**/*.{js,ts,md,json,sol}\"",
     "prepare": "husky install",
     "sls:config": "sls config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY",
-    "sls:deploy": "ts-node scripts/load-config.ts && sls deploy --region us-east-1",
-    "sls:remove": "sls remove --region us-east-1",
+    "sls:deploy": "ts-node scripts/load-config.ts && sls deploy",
+    "sls:remove": "sls remove",
     "sls:local": "sls offline",
     "sls:invoke:fundHandler": "sls invoke local -f fundHandler",
     "test": "yarn test:unit && yarn test:contracts",
@@ -38,7 +39,7 @@
     "test:unit": "jest"
   },
   "devDependencies": {
-    "@api3/chains": "^3.3.0",
+    "@api3/chains": "^3.5.1",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
@@ -52,6 +53,7 @@
     "@types/lodash": "^4.14.197",
     "@types/mocha": ">=10.0.1",
     "@types/node": ">=18.17.5",
+    "@types/serverless": "^3.12.14",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.4.0",
     "chai": "^4.3.7",
@@ -67,6 +69,7 @@
     "jest": "^29.6.2",
     "prettier": "^2.8.8",
     "prettier-plugin-solidity": "^1.1.3",
+    "serverless": "^3.34.0",
     "serverless-esbuild": "^1.46.0",
     "serverless-offline": "^12.0.4",
     "solhint": "^3.6.1",
@@ -77,7 +80,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@api3/airnode-protocol-v1": "^2.8.0",
+    "@api3/airnode-protocol-v1": "^2.10.0",
     "@api3/airnode-utilities": "^0.12.0",
     "@api3/airnode-validator": "^0.12.0",
     "@api3/promise-utils": "^0.4.0",
