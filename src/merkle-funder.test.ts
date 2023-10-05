@@ -15,10 +15,11 @@ const getGasPriceMock = jest.fn().mockResolvedValue([
 
 import { LogOptions, logger } from '@api3/airnode-utilities';
 import { ethers } from 'ethers';
-import { decodeRevertString } from './evm';
+import * as evmModule from './evm';
 import { fundChainRecipients } from './merkle-funder';
 import buildMerkleTree from './merkle-tree';
 import { ChainOptions, MerkleFunderDepositories, NamedUnits } from './types';
+import { generateRandomAddress } from '../test/test-utils';
 
 jest.mock('@api3/airnode-utilities', () => ({
   getGasPrice: getGasPriceMock,
@@ -34,7 +35,11 @@ jest.mock('./merkle-tree', () => ({
   default: jest.fn(),
 }));
 
-const logOptions: LogOptions = { format: 'plain', level: 'INFO', meta: { 'CHAIN-ID': '31337', PROVIDER: 'provider1' } };
+const logOptions: LogOptions = {
+  format: 'plain',
+  level: 'INFO',
+  meta: { 'CHAIN-ID': '31337', PROVIDER: 'provider1', DEPOSITORY: expect.any(String) },
+};
 
 describe('fundChainRecipients', () => {
   afterEach(() => {
@@ -75,6 +80,10 @@ describe('fundChainRecipients', () => {
       render: jest.fn().mockReturnValue('mocked-merkle-tree-render'),
     }));
 
+    jest
+      .spyOn(evmModule, 'computeMerkleFunderDepositoryAddress')
+      .mockReturnValue(Promise.resolve(generateRandomAddress()));
+
     const encodeFunctionDataMock = jest
       .fn()
       .mockReturnValueOnce(staticMulticallCalldata[0])
@@ -88,6 +97,7 @@ describe('fundChainRecipients', () => {
     const mockGetTransactionCount = jest.fn().mockImplementation(() => Promise.resolve(1));
 
     const mockContract = {
+      address: '0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B',
       interface: {
         encodeFunctionData: encodeFunctionDataMock,
       },
@@ -162,12 +172,12 @@ describe('fundChainRecipients', () => {
     expect(loggerInfoSpy).toHaveBeenCalledWith('Funding test of 0xrecipient2 succeeded', logOptions);
     expect(loggerInfoSpy).not.toHaveBeenCalledWith(
       'Funding test of 0xrecipient1 reverted with message:',
-      decodeRevertString(returndata[1]),
+      evmModule.decodeRevertString(returndata[1]),
       logOptions
     );
     expect(loggerInfoSpy).not.toHaveBeenCalledWith(
       'Funding test of 0xrecipient2 reverted with message:',
-      decodeRevertString(returndata[2]),
+      evmModule.decodeRevertString(returndata[2]),
       logOptions
     );
     expect(mockGetTransactionCount).toHaveBeenCalledTimes(1);
@@ -233,6 +243,7 @@ describe('fundChainRecipients', () => {
     const mockGetTransactionCount = jest.fn().mockImplementation(() => Promise.resolve(1));
 
     const mockContract = {
+      address: '0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B',
       interface: {
         encodeFunctionData: encodeFunctionDataMock,
       },
@@ -354,6 +365,7 @@ describe('fundChainRecipients', () => {
     const mockGetTransactionCount = jest.fn().mockImplementation(() => Promise.resolve(1));
 
     const mockContract = {
+      address: '0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B',
       interface: {
         encodeFunctionData: encodeFunctionDataMock,
       },
