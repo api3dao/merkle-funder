@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as api3Chains from '@api3/chains';
 
 const chainsEnvVars = ['localhost', ...api3Chains.CHAINS.map((chain) => chain.alias)].map(
-  (chainAlias) => `FUNDER_RPC_URL_${chainAlias.replace(/-/g, '_').toUpperCase()}`
+  (chainAlias) => `FUNDER_RPC_URL_${chainAlias.replace(/-/g, '_').toUpperCase()}_1`
 );
 
 fs.writeFileSync(
