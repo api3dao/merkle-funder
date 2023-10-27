@@ -72,7 +72,7 @@
     "serverless": "^3.34.0",
     "serverless-esbuild": "^1.46.0",
     "serverless-offline": "^12.0.4",
-    "solhint": "^3.6.1",
+    "solhint": "^4.0.0",
     "solidity-coverage": "^0.8.4",
     "ts-jest": "^29.1.1",
     "ts-node": ">=10.9.1",
