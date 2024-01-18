@@ -1,6 +1,7 @@
-import { goSync } from '@api3/promise-utils';
+import { go, goSync } from '@api3/promise-utils';
 import { ethers } from 'ethers';
 import { MerkleFunderDepository__factory } from './contracts';
+import { SelfMulticall } from '@api3/airnode-protocol-v1';
 
 export const computeMerkleFunderDepositoryAddress = async (
   merkleFunderAddress: string,
@@ -39,4 +40,18 @@ export const decodeRevertString = (returndata: string) => {
   }
 
   return goDecode.data;
+};
+
+export const estimateMulticallGasLimit = async (
+  contract: SelfMulticall,
+  calldatas: string[],
+  fallbackGasLimit: ethers.BigNumber | undefined
+) => {
+  const goEstimateGas = await go(async () => contract.estimateGas.multicall(calldatas));
+  if (goEstimateGas.success) {
+    // Adding a extra 10% because multicall consumes less gas than tryMulticall
+    return goEstimateGas.data.mul(ethers.BigNumber.from(Math.round(1.1 * 100))).div(ethers.BigNumber.from(100));
+  }
+
+  return fallbackGasLimit ?? ethers.BigNumber.from(2_000_000);
 };
