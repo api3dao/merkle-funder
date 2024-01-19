@@ -49,7 +49,7 @@ export const estimateMulticallGasLimit = async (
 ) => {
   const goEstimateGas = await go(async () => contract.estimateGas.multicall(calldatas));
   if (goEstimateGas.success) {
-    // Adding a extra 10% because multicall consumes less gas than tryMulticall
+    // Adding an extra 10% because multicall consumes less gas than tryMulticall
     return goEstimateGas.data.mul(ethers.BigNumber.from(Math.round(1.1 * 100))).div(ethers.BigNumber.from(100));
   }
 
