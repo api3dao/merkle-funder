@@ -90,18 +90,13 @@ describe('estimateMulticallGasLimit', () => {
     expect(result).toEqual(fallbackGasLimit);
   });
 
-  it('should fallback to a default gas limit if no fallbackGasLimit is provided', async () => {
+  it('should throw an error if estimation fails and no fallbackGasLimit is provided', async () => {
     const calldatas = ['0xabcdef', '0x123456'];
 
-    // Mock the estimateGas.multicall function to simulate failure
     mockContract.estimateGas.multicall.mockRejectedValueOnce(new Error('Estimation failed'));
 
-    const result = await estimateMulticallGasLimit(mockContract, calldatas, undefined);
-
-    // Verify that estimateGas.multicall was called with the correct arguments
-    expect(mockContract.estimateGas.multicall).toHaveBeenCalledWith(calldatas);
-
-    // Verify that the result falls back to the default gas limit (2_000_000)
-    expect(result).toEqual(ethers.BigNumber.from(2_000_000));
+    await expect(estimateMulticallGasLimit(mockContract, calldatas, undefined)).rejects.toThrowError(
+      'Unable to estimate gas limit'
+    );
   });
 });

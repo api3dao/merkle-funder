@@ -53,5 +53,9 @@ export const estimateMulticallGasLimit = async (
     return goEstimateGas.data.mul(ethers.BigNumber.from(Math.round(1.1 * 100))).div(ethers.BigNumber.from(100));
   }
 
-  return fallbackGasLimit ?? ethers.BigNumber.from(2_000_000);
+  if (!fallbackGasLimit) {
+    throw new Error('Unable to estimate gas limit');
+  }
+
+  return fallbackGasLimit;
 };
