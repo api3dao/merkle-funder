@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { generateRandomAddress, generateRandomBytes32 } from '../test/test-utils';
 import { MerkleFunderDepository__factory } from './contracts';
-import { computeMerkleFunderDepositoryAddress, decodeRevertString } from './evm';
+import { computeMerkleFunderDepositoryAddress, decodeRevertString, estimateMulticallGasLimit } from './evm';
 
 describe('computeMerkleFunderDepositoryAddress', () => {
   it('should compute the correct MerkleFunderDepository address', async () => {
@@ -46,5 +46,57 @@ describe('decodeRevertString', () => {
 
     const result = decodeRevertString(returndata);
     expect(result).toEqual(expectedRevertString);
+  });
+});
+
+describe('estimateMulticallGasLimit', () => {
+  let mockContract: any;
+
+  beforeEach(() => {
+    mockContract = {
+      estimateGas: {
+        multicall: jest.fn(),
+      },
+    };
+  });
+
+  it('should estimate gas limit successfully', async () => {
+    const calldatas = ['0xabcdef', '0x123456'];
+    const fallbackGasLimit = ethers.BigNumber.from(3_000_000);
+
+    const estimatedGas = ethers.BigNumber.from(2500000);
+    mockContract.estimateGas.multicall.mockResolvedValueOnce(estimatedGas);
+
+    const result = await estimateMulticallGasLimit(mockContract, calldatas, fallbackGasLimit);
+
+    expect(mockContract.estimateGas.multicall).toHaveBeenCalledWith(calldatas);
+
+    const expectedGasLimit = estimatedGas
+      .mul(ethers.BigNumber.from(Math.round(1.1 * 100)))
+      .div(ethers.BigNumber.from(100));
+    expect(result).toEqual(expectedGasLimit);
+  });
+
+  it('should fallback to provided gas limit if estimation fails', async () => {
+    const calldatas = ['0xabcdef', '0x123456'];
+    const fallbackGasLimit = ethers.BigNumber.from(3_000_000);
+
+    mockContract.estimateGas.multicall.mockRejectedValueOnce(new Error('Estimation failed'));
+
+    const result = await estimateMulticallGasLimit(mockContract, calldatas, fallbackGasLimit);
+
+    expect(mockContract.estimateGas.multicall).toHaveBeenCalledWith(calldatas);
+
+    expect(result).toEqual(fallbackGasLimit);
+  });
+
+  it('should throw an error if estimation fails and no fallbackGasLimit is provided', async () => {
+    const calldatas = ['0xabcdef', '0x123456'];
+
+    mockContract.estimateGas.multicall.mockRejectedValueOnce(new Error('Estimation failed'));
+
+    await expect(estimateMulticallGasLimit(mockContract, calldatas, undefined)).rejects.toThrowError(
+      'Unable to estimate gas limit'
+    );
   });
 });

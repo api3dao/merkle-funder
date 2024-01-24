@@ -18,7 +18,7 @@ const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, ch
   const signer = ethers.Wallet.fromMnemonic(funderMnemonic).connect(provider);
 
   // Return the merkleFunder contract
-  return new ethers.Contract(merkleFunderAddress, MerkleFunder__factory.abi, signer);
+  return MerkleFunder__factory.connect(merkleFunderAddress, signer);
 };
 
 export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Context): Promise<void> => {
