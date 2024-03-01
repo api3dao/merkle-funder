@@ -30,6 +30,7 @@
     "59140": "linea-goerli-testnet",
     "59144": "linea",
     "80001": "polygon-testnet",
+    "81457": "blast",
     "84531": "base-goerli-testnet",
     "421613": "arbitrum-goerli-testnet",
     "11155111": "ethereum-sepolia-testnet"
@@ -65,6 +66,7 @@
     "59140": 1520749,
     "59144": 413018,
     "80001": 37805454,
+    "81457": 262989,
     "84531": 9720269,
     "421613": 30058635,
     "11155111": 3869317

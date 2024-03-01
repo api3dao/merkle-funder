@@ -30,6 +30,7 @@
     "59140": "linea-goerli-testnet",
     "59144": "linea",
     "80001": "polygon-testnet",
+    "81457": "blast",
     "84531": "base-goerli-testnet",
     "421613": "arbitrum-goerli-testnet",
     "11155111": "ethereum-sepolia-testnet"
@@ -65,6 +66,7 @@
     "59140": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B",
     "59144": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B",
     "80001": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B",
+    "81457": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B",
     "84531": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B",
     "421613": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B",
     "11155111": "0x04d2B3DdCdb2790571Ca01F4768e3cC98FCb0D2B"
