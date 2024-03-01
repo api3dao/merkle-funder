@@ -1,43 +1,64 @@
-import { getGasPrice } from '@api3/airnode-utilities';
+import { LogOptions, getGasPrice, logger } from '@api3/airnode-utilities';
 import { go } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { decodeRevertString } from './evm';
+import { computeMerkleFunderDepositoryAddress, decodeRevertString, estimateMulticallGasLimit } from './evm';
 import buildMerkleTree from './merkle-tree';
 import { ChainConfig } from './types';
+import { MerkleFunder } from './contracts';
 
 export const fundChainRecipients = async (
   chainId: string,
   chainConfig: Pick<ChainConfig, 'options' | 'merkleFunderDepositories'>,
-  merkleFunderContract: ethers.Contract
+  merkleFunderContract: MerkleFunder,
+  logOptions: LogOptions
 ) => {
-  let nonce: number | null = null;
+  logger.info(`Processing ${chainConfig.merkleFunderDepositories.length} merkleFunderDepositories...`, logOptions);
+
+  let nonce: number | undefined = undefined;
   for (const { owner, values } of chainConfig.merkleFunderDepositories) {
     // Build merkle tree
     const tree = buildMerkleTree(values);
-    console.log('Merkle tree:\n', tree.render());
+    logger.debug(`Merkle tree:\n${tree.render()}`, logOptions);
 
-    const getBlockNumberCalldata = merkleFunderContract.interface.encodeFunctionData('getBlockNumber()');
-
-    const multicallCalldata = values.map(({ recipient, lowThreshold, highThreshold }, treeValueIndex) =>
-      merkleFunderContract.interface.encodeFunctionData('fund(address,bytes32,bytes32[],address,uint256,uint256)', [
-        owner,
-        tree.root,
-        tree.getProof(treeValueIndex),
-        recipient,
-        ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
-        ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
-      ])
+    const merkleFunderDepositoryAddress = await computeMerkleFunderDepositoryAddress(
+      merkleFunderContract.address,
+      owner,
+      tree.root
     );
-    console.log('Expected number of calldatas to be sent: ', multicallCalldata.length, chainId);
+
+    const depositoryLogOptions = {
+      ...logOptions,
+      meta: { ...logOptions.meta, DEPOSITORY: merkleFunderDepositoryAddress },
+    };
+
+    const getBlockNumberCalldata = merkleFunderContract.interface.encodeFunctionData('getBlockNumber');
+
+    const multicallCalldata = values.map(({ recipient, lowThreshold, highThreshold }, treeValueIndex) => {
+      logger.debug(`Testing funding of ${recipient}`, depositoryLogOptions);
+      logger.debug(JSON.stringify({ lowThreshold, highThreshold }, null, 2), depositoryLogOptions);
+      return {
+        recipient,
+        calldata: merkleFunderContract.interface.encodeFunctionData('fund', [
+          owner,
+          tree.root,
+          tree.getProof(treeValueIndex),
+          recipient,
+          ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
+          ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
+        ]),
+      };
+    });
 
     const tryStaticMulticallResult = await go(() =>
-      merkleFunderContract.callStatic.tryMulticall([getBlockNumberCalldata, ...multicallCalldata])
+      merkleFunderContract.callStatic.tryMulticall([
+        getBlockNumberCalldata,
+        ...multicallCalldata.map((c) => c.calldata),
+      ])
     );
     if (!tryStaticMulticallResult.success) {
-      console.log(
-        'Failed to call merkleFunderContract.callStatic.tryMulticall:',
-        tryStaticMulticallResult.error.message,
-        chainId
+      logger.info(
+        `Failed to call merkleFunderContract.callStatic.tryMulticall: ${tryStaticMulticallResult.error.message}`,
+        depositoryLogOptions
       );
       continue;
     }
@@ -49,28 +70,38 @@ export const fundChainRecipients = async (
 
     // Get block number to use as argument when fetching the transaction count
     if (!getBlockNumberSuccess) {
-      console.log('Failded to fetch block number:', decodeRevertString(getBlockNumberReturndata), chainId);
+      logger.info(
+        `Failed to fetch block number: ${decodeRevertString(getBlockNumberReturndata)}`,
+        depositoryLogOptions
+      );
       continue;
     }
     const blockNumber = ethers.BigNumber.from(getBlockNumberReturndata);
-    console.log('Block number:', blockNumber.toString(), chainId);
+    logger.info(`Block number fetched while testing funding of recipients: ${blockNumber}`, depositoryLogOptions);
 
     // Filter out calldata that failed to be sent
-    const successfulMulticallCalldata = (remainingSuccesses as boolean[]).reduce((acc, success, index) => {
-      if (!success) {
-        console.log(
-          `Calldata #${index + 1} reverted with message:`,
-          decodeRevertString(remainingRetunrdata[index]),
-          chainId
-        );
-        return acc;
-      }
-      return [...acc, multicallCalldata[index]];
-    }, [] as string[]);
+    const successfulMulticallCalldata = (remainingSuccesses as boolean[]).reduce(
+      (acc: { recipient: string; calldata: string }[], success, index) => {
+        if (!success) {
+          const reason =
+            merkleFunderContract.interface.parseError(remainingRetunrdata[index])?.name ??
+            decodeRevertString(remainingRetunrdata[index]);
+          logger.info(
+            `Funding test of ${multicallCalldata[index].recipient} reverted with message: ${reason}`,
+            depositoryLogOptions
+          );
+          return acc;
+        }
+
+        logger.info(`Funding test of ${multicallCalldata[index].recipient} succeeded`, depositoryLogOptions);
+
+        return [...acc, multicallCalldata[index]];
+      },
+      []
+    );
 
     // Try to send the calldatas
     // TODO: A potential improvement here is to batch these calls
-    console.log('Actual number of calldatas to be sent: ', successfulMulticallCalldata.length, chainId);
     if (successfulMulticallCalldata.length > 0) {
       nonce =
         nonce ??
@@ -78,24 +109,30 @@ export const fundChainRecipients = async (
           // HACK: Arbitrum returns the L1 block number so we need to fetch the L2 block number via provider RPC call
           chainId === '42161' ? await merkleFunderContract.provider.getBlockNumber() : blockNumber.toNumber()
         ));
-      console.log('Nonce:', nonce, chainId);
+      logger.info(`tryMulticall transaction nonce: ${nonce}`, depositoryLogOptions);
 
       // Get the latest gas price
       const [logs, gasTarget] = await getGasPrice(merkleFunderContract.provider, chainConfig.options);
-      logs.forEach((log) => console.log(log.error ? log.error.message : log.message));
+      logs.forEach((log) => logger.info(log.error ? log.error.message : log.message), depositoryLogOptions);
+
+      const calldatas = successfulMulticallCalldata.map((c) => c.calldata);
+
+      const gasLimit = await estimateMulticallGasLimit(merkleFunderContract, calldatas, gasTarget.gasLimit);
+      logger.debug(`Gas limit: ${gasLimit.toString()}`, logOptions);
 
       // We still tryMulticall in case a recipient is funded by someone else in the meantime
       const tryMulticallResult = await go(() =>
-        merkleFunderContract.tryMulticall(successfulMulticallCalldata, { nonce, ...gasTarget })
+        merkleFunderContract.tryMulticall(calldatas, { nonce, ...gasTarget, gasLimit })
       );
       if (!tryMulticallResult.success) {
-        console.log('Failed to call merkleFunderContract.tryMulticall:', tryMulticallResult.error.message, chainId);
+        logger.error(
+          `Failed to call merkleFunderContract.tryMulticall: ${tryMulticallResult.error.message}`,
+          tryMulticallResult.error,
+          depositoryLogOptions
+        );
         continue;
       }
-      console.log(
-        `Sent tx with hash ${tryMulticallResult.data.hash} that will send funds to ${successfulMulticallCalldata.length} recipients`,
-        chainId
-      );
+      logger.info(`Sent tx with hash ${tryMulticallResult.data.hash}`, depositoryLogOptions);
       nonce++;
     }
   }

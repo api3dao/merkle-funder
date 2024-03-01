@@ -1,3 +1,4 @@
+import { LogLevel, LogOptions, logger, setLogOptions } from '@api3/airnode-utilities';
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 import { ethers } from 'ethers';
 import * as references from '../deployments/references.json';
@@ -17,30 +18,37 @@ const getMerkleFunderContract = (funderMnemonic: string, providerUrl: string, ch
   const signer = ethers.Wallet.fromMnemonic(funderMnemonic).connect(provider);
 
   // Return the merkleFunder contract
-  return new ethers.Contract(merkleFunderAddress, MerkleFunder__factory.abi, signer);
+  return MerkleFunder__factory.connect(merkleFunderAddress, signer);
 };
 
 export const run: ScheduledHandler = async (_event: ScheduledEvent, _context: Context): Promise<void> => {
-  const startedAt = new Date();
+  const consoleTimeLabel = 'Scheduled task finished running. Time elapsed';
+  console.time(consoleTimeLabel);
+
   const config = loadConfig();
+
+  const baseLogOptions: LogOptions = {
+    format: 'plain',
+    level: (process.env.LOG_LEVEL as LogLevel) || 'INFO',
+  };
+  setLogOptions(baseLogOptions);
 
   const chainFundingResults = await Promise.allSettled(
     Object.entries(config).flatMap(([chainId, { providers, funderMnemonic, ...chainConfig }]) =>
       Object.entries(providers).map(async ([providerName, provider]) => {
-        console.log(`Funding recipients on chain with ID: ${chainId} using provider: ${providerName}`);
-
+        const logOptions = { ...baseLogOptions, meta: { 'CHAIN-ID': chainId, PROVIDER: providerName } };
         const merkleFunderContract = getMerkleFunderContract(funderMnemonic, provider.url, chainId);
-        await fundChainRecipients(chainId, chainConfig, merkleFunderContract);
+        await fundChainRecipients(chainId, chainConfig, merkleFunderContract, logOptions);
       })
     )
   );
 
   chainFundingResults.forEach((result) => {
     if (result.status === 'rejected') {
-      console.log(result.reason);
+      logger.error(result.reason.message);
+      logger.debug(result.reason.stack);
     }
   });
 
-  const endedAt = new Date();
-  console.log(`Scheduled task finished running. Run delta: ${(endedAt.getTime() - startedAt.getTime()) / 1000} s`);
+  console.timeEnd(consoleTimeLabel);
 };
