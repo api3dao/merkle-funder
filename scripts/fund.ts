@@ -1,8 +1,9 @@
+import { LogLevel, LogOptions, logger } from '@api3/airnode-utilities';
 import { go } from '@api3/promise-utils';
 import * as hre from 'hardhat';
+import { MerkleFunder__factory } from '../src';
 import { loadConfig } from '../src/config';
 import { fundChainRecipients } from '../src/merkle-funder';
-import { LogLevel, LogOptions, logger } from '@api3/airnode-utilities';
 
 async function main() {
   const chainId = await hre.getChainId();
@@ -30,11 +31,7 @@ async function main() {
 
   const deployer = await hre.ethers.getSigner(deployerAddress);
 
-  const merkleFunderContract = new hre.ethers.Contract(
-    merkleFunderDeployment.address,
-    merkleFunderDeployment.abi,
-    deployer
-  );
+  const merkleFunderContract = MerkleFunder__factory.connect(merkleFunderDeployment.address, deployer);
 
   const chainConfig = loadConfigResult.data[parseInt(chainId)];
   if (!chainConfig.merkleFunderDepositories) {

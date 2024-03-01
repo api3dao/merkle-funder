@@ -1,19 +1,20 @@
 import { LogOptions, getGasPrice, logger } from '@api3/airnode-utilities';
 import { go } from '@api3/promise-utils';
 import { ethers } from 'ethers';
-import { computeMerkleFunderDepositoryAddress, decodeRevertString } from './evm';
+import { computeMerkleFunderDepositoryAddress, decodeRevertString, estimateMulticallGasLimit } from './evm';
 import buildMerkleTree from './merkle-tree';
 import { ChainConfig } from './types';
+import { MerkleFunder } from './contracts';
 
 export const fundChainRecipients = async (
   chainId: string,
   chainConfig: Pick<ChainConfig, 'options' | 'merkleFunderDepositories'>,
-  merkleFunderContract: ethers.Contract,
+  merkleFunderContract: MerkleFunder,
   logOptions: LogOptions
 ) => {
   logger.info(`Processing ${chainConfig.merkleFunderDepositories.length} merkleFunderDepositories...`, logOptions);
 
-  let nonce: number | null = null;
+  let nonce: number | undefined = undefined;
   for (const { owner, values } of chainConfig.merkleFunderDepositories) {
     // Build merkle tree
     const tree = buildMerkleTree(values);
@@ -30,24 +31,21 @@ export const fundChainRecipients = async (
       meta: { ...logOptions.meta, DEPOSITORY: merkleFunderDepositoryAddress },
     };
 
-    const getBlockNumberCalldata = merkleFunderContract.interface.encodeFunctionData('getBlockNumber()');
+    const getBlockNumberCalldata = merkleFunderContract.interface.encodeFunctionData('getBlockNumber');
 
     const multicallCalldata = values.map(({ recipient, lowThreshold, highThreshold }, treeValueIndex) => {
       logger.debug(`Testing funding of ${recipient}`, depositoryLogOptions);
       logger.debug(JSON.stringify({ lowThreshold, highThreshold }, null, 2), depositoryLogOptions);
       return {
         recipient,
-        calldata: merkleFunderContract.interface.encodeFunctionData(
-          'fund(address,bytes32,bytes32[],address,uint256,uint256)',
-          [
-            owner,
-            tree.root,
-            tree.getProof(treeValueIndex),
-            recipient,
-            ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
-            ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
-          ]
-        ),
+        calldata: merkleFunderContract.interface.encodeFunctionData('fund', [
+          owner,
+          tree.root,
+          tree.getProof(treeValueIndex),
+          recipient,
+          ethers.utils.parseUnits(lowThreshold.value.toString(), lowThreshold.unit),
+          ethers.utils.parseUnits(highThreshold.value.toString(), highThreshold.unit),
+        ]),
       };
     });
 
@@ -117,12 +115,14 @@ export const fundChainRecipients = async (
       const [logs, gasTarget] = await getGasPrice(merkleFunderContract.provider, chainConfig.options);
       logs.forEach((log) => logger.info(log.error ? log.error.message : log.message), depositoryLogOptions);
 
+      const calldatas = successfulMulticallCalldata.map((c) => c.calldata);
+
+      const gasLimit = await estimateMulticallGasLimit(merkleFunderContract, calldatas, gasTarget.gasLimit);
+      logger.debug(`Gas limit: ${gasLimit.toString()}`, logOptions);
+
       // We still tryMulticall in case a recipient is funded by someone else in the meantime
       const tryMulticallResult = await go(() =>
-        merkleFunderContract.tryMulticall(
-          successfulMulticallCalldata.map((c) => c.calldata),
-          { nonce, ...gasTarget }
-        )
+        merkleFunderContract.tryMulticall(calldatas, { nonce, ...gasTarget, gasLimit })
       );
       if (!tryMulticallResult.success) {
         logger.error(
