@@ -39,7 +39,7 @@
     "test:unit": "jest"
   },
   "devDependencies": {
-    "@api3/chains": "^4.11.0",
+    "@api3/chains": "^6.3.1",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
