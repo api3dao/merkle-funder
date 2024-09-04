@@ -60,7 +60,7 @@
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.1",
     "eslint": "^8.57.0",
-    "eslint-plugin-jest": "^27.9.0",
+    "eslint-plugin-jest": "^28.8.3",
     "hardhat": "2.20.1",
     "hardhat-deploy": "^0.12.1",
     "hardhat-gas-reporter": "^1.0.10",
