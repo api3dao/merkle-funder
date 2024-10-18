@@ -59,7 +59,7 @@
     "chai": "^4.4.1",
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.13.0",
     "eslint-plugin-jest": "^27.9.0",
     "hardhat": "2.20.1",
     "hardhat-deploy": "^0.12.1",
